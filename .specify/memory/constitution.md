@@ -1,50 +1,99 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+- Version change: 0.1.0 → 1.0.0
+- Modified principles: none (initial ratification)
+- Added sections: Core Principles, Additional Constraints, Development Workflow, Governance
+- Removed sections: none
+- Templates updated:
+	- ✅ .specify/templates/plan-template.md
+	- ✅ .specify/templates/spec-template.md
+	- ✅ .specify/templates/tasks-template.md
+	- ✅ .specify/templates/checklist-template.md
+	- ✅ .specify/templates/agent-file-template.md
+- Deferred TODOs:
+	- TODO(RATIFICATION_DATE): original ratification date unknown, using first adoption date
+-->
+
+# TDD Agent Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Readable, Intent-Revealing Code
+Code MUST be written so that the next developer can
+understand intent quickly without guessing. Names MUST be
+descriptive, side effects explicit, and control flow
+straightforward. Comments are reserved for non-obvious
+decisions, not restating what code already expresses.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Consistent Code Quality Standards
+The codebase MUST follow a consistent style and quality
+baseline: no dead code, no commented-out blocks as long-term
+scaffolding, and no unused abstractions. Existing patterns
+and conventions in this kata MUST be followed unless there is
+a clear, documented reason to improve them.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Test-Driven, High-Coverage Development
+New behavior MUST be introduced using Test-Driven
+Development: write a failing test, make it pass with the
+simplest implementation, then refactor. Unit tests MUST
+cover all new logic paths that can be reasonably isolated.
+Regression tests SHOULD be added for any fixed bug.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Small, Focused, Reversible Commits
+Commits MUST be small, cohesive, and tell a clear story.
+Each commit SHOULD represent a single behavior change or
+refactoring step that can be reviewed independently and
+reverted without collateral damage. Work-in-progress code
+MUST NOT be committed unless it is explicitly guarded and
+does not break existing behavior.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Pre-Commit Safety Gate
+Before any commit, all automated checks MUST pass: code MUST
+compile, the full test suite MUST be green, and static
+analysis or linters configured for this project MUST report
+no new issues. If a check is flaky or temporarily failing, it
+MUST be either fixed immediately or the risk explicitly
+documented in the commit message and follow-up task.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Additional Constraints
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+This kata favors clarity over cleverness. Introducing new
+dependencies, patterns, or architectural layers MUST be
+justified by concrete needs (e.g., new behavior, testability,
+or safety) rather than anticipated future requirements.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Development Workflow
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+Work SHOULD proceed in short, test-driven cycles. Each cycle
+follows this pattern:
+- Clarify the next small behavior change.
+- Write or adjust tests to express that behavior.
+- Implement the minimal code to make tests pass.
+- Refactor for readability and code quality while keeping
+	tests green.
+- Run the full safety gate before committing.
+
+Code review, when applicable, MUST check for alignment with
+these principles in addition to functional correctness.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution defines the non-negotiable engineering
+standards for this kata. Where it conflicts with past habits
+or ad-hoc practices, this constitution takes precedence.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+Amendments MUST:
+- Be documented as explicit version bumps in this file using
+	semantic versioning.
+- State which principles or sections are added, removed, or
+	redefined.
+- Be communicated to anyone contributing to this kata.
+
+Compliance:
+- All new work and code reviews MUST assess adherence to
+	readability, code quality, testing discipline, commit
+	hygiene, and the pre-commit safety gate.
+- Periodic review of this constitution SHOULD occur when the
+	kata evolves or new constraints emerge.
+
+**Version**: 1.0.0 | **Ratified**: 2025-11-23 | **Last Amended**: 2025-11-23
