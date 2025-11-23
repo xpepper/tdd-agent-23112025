@@ -1,0 +1,23 @@
+# Build artifacts
+/target/
+/debug/
+/release/
+
+# Rust tooling
+*.rs.bk
+*.rlib
+*.rmeta
+*.prof*
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
+.vscode/
+.idea/
+
+# Logs and environment files
+*.log
+.env
+.env.*

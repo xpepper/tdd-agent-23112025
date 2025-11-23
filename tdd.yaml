@@ -1,0 +1,27 @@
+# Autonomous Multi-Agent TDD Machine configuration
+workspace:
+  kata_file: "kata.md"
+  plan_dir: ".tdd/plan"
+  log_dir: ".tdd/logs"
+  max_steps: 10
+  max_attempts_per_agent: 2
+roles:
+  tester:
+    model: "gpt-4o-mini"
+    temperature: 0.1
+  implementor:
+    model: "gpt-4o-mini"
+    temperature: 0.2
+  refactorer:
+    model: "gpt-4o-mini"
+    temperature: 0.15
+llm:
+  base_url: "https://api.openai.com/v1"
+  api_key_env: "OPENAI_API_KEY"
+ci:
+  fmt: ["cargo", "fmt"]
+  check: ["cargo", "clippy", "-D", "warnings"]
+  test: ["cargo", "test"]
+commit_author:
+  name: "Autonomous TDD Machine"
+  email: "tdd-machine@example.com"

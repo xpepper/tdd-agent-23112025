@@ -23,15 +23,15 @@ commits.
 
 **Purpose**: Workspace initialization and shared configuration
 
-- [ ] T001 Create cargo workspace manifest in `Cargo.toml` with members `crates/tdd-cli`, `crates/tdd-core`, `crates/tdd-agents`, `crates/tdd-exec`, `crates/tdd-llm`, `crates/tdd-fixtures`
-- [ ] T002 [P] Scaffold crate `crates/tdd-cli/src/main.rs` with a minimal `clap`-based CLI entrypoint
-- [ ] T003 [P] Scaffold crate `crates/tdd-core/src/lib.rs` with module declarations for `orchestrator`, `roles`, `step`, `commit_policy`
-- [ ] T004 [P] Scaffold crate `crates/tdd-agents/src/lib.rs` with module declarations for `tester`, `implementor`, `refactorer`
-- [ ] T005 [P] Scaffold crate `crates/tdd-exec/src/lib.rs` with module declarations for `runner`, `vcs`, `fs`
-- [ ] T006 [P] Scaffold crate `crates/tdd-llm/src/lib.rs` with module declarations for `client`, `config`
-- [ ] T007 [P] Scaffold crate `crates/tdd-fixtures/src/lib.rs` and `crates/tdd-fixtures/tests/` folder
-- [ ] T008 Add repo-level `.gitignore`, `rust-toolchain.toml`, and baseline `clippy`/`fmt` configuration files
-- [ ] T009 Create `tdd.yaml` template and `kata.md` placeholder at repository root
+- [X] T001 Create cargo workspace manifest in `Cargo.toml` with members `crates/tdd-cli`, `crates/tdd-core`, `crates/tdd-agents`, `crates/tdd-exec`, `crates/tdd-llm`, `crates/tdd-fixtures`
+- [X] T002 [P] Scaffold crate `crates/tdd-cli/src/main.rs` with a minimal `clap`-based CLI entrypoint
+- [X] T003 [P] Scaffold crate `crates/tdd-core/src/lib.rs` with module declarations for `orchestrator`, `roles`, `step`, `commit_policy`
+- [X] T004 [P] Scaffold crate `crates/tdd-agents/src/lib.rs` with module declarations for `tester`, `implementor`, `refactorer`
+- [X] T005 [P] Scaffold crate `crates/tdd-exec/src/lib.rs` with module declarations for `runner`, `vcs`, `fs`
+- [X] T006 [P] Scaffold crate `crates/tdd-llm/src/lib.rs` with module declarations for `client`, `config`
+- [X] T007 [P] Scaffold crate `crates/tdd-fixtures/src/lib.rs` and `crates/tdd-fixtures/tests/` folder
+- [X] T008 Add repo-level `.gitignore`, `rust-toolchain.toml`, and baseline `clippy`/`fmt` configuration files
+- [X] T009 Create `tdd.yaml` template and `kata.md` placeholder at repository root
 
 ---
 
