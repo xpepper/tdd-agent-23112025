@@ -13,7 +13,7 @@ use tdd_exec::{
 use thiserror::Error;
 
 /// Roles participating in the red–green–refactor loop.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Role {
     Tester,
     Implementor,

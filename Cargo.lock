@@ -1293,6 +1293,7 @@ dependencies = [
  "tdd-exec",
  "tempfile",
  "thiserror",
+ "tokio",
 ]
 
 [[package]]
