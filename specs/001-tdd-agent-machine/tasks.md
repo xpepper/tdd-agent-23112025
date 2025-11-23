@@ -39,15 +39,15 @@ commits.
 
 **Purpose**: Core infrastructure required before user stories
 
-- [ ] T010 Implement configuration structs for `tdd.yaml` in `crates/tdd-core/src/config.rs` (paths, steps, roles, LLM, CI, commit author)
-- [ ] T011 [P] Implement `Runner` trait and Rust runner in `crates/tdd-exec/src/runner.rs` wrapping `cargo fmt`, `cargo clippy`, and `cargo test`
-- [ ] T012 [P] Implement `RepoState` and `Vcs` trait in `crates/tdd-exec/src/vcs.rs` using `git2` for init, state reading, staging, and committing
-- [ ] T013 [P] Implement filesystem helpers in `crates/tdd-exec/src/fs.rs` for listing repo files using `walkdir` and `ignore`
-- [ ] T014 Add unit tests for `Runner` and `Vcs` in `crates/tdd-exec/tests/runner_vcs_tests.rs` using temporary directories
-- [ ] T015 Implement `LlmClient` trait and `Message` type in `crates/tdd-llm/src/client.rs`
-- [ ] T016 [P] Implement OpenAI-compatible HTTP client in `crates/tdd-llm/src/client.rs` using `reqwest` and `tokio`
-- [ ] T017 [P] Implement configuration parsing for LLM and roles in `crates/tdd-llm/src/config.rs` bound to `tdd.yaml`
-- [ ] T018 Add mock `LlmClient` implementation for tests in `crates/tdd-llm/src/mock.rs`
+- [X] T010 Implement configuration structs for `tdd.yaml` in `crates/tdd-core/src/config.rs` (paths, steps, roles, LLM, CI, commit author)
+- [X] T011 [P] Implement `Runner` trait and Rust runner in `crates/tdd-exec/src/runner.rs` wrapping `cargo fmt`, `cargo clippy`, and `cargo test`
+- [X] T012 [P] Implement `RepoState` and `Vcs` trait in `crates/tdd-exec/src/vcs.rs` using `git2` for init, state reading, staging, and committing
+- [X] T013 [P] Implement filesystem helpers in `crates/tdd-exec/src/fs.rs` for listing repo files using `walkdir` and `ignore`
+- [X] T014 Add unit tests for `Runner` and `Vcs` in `crates/tdd-exec/tests/runner_vcs_tests.rs` using temporary directories
+- [X] T015 Implement `LlmClient` trait and `Message` type in `crates/tdd-llm/src/client.rs`
+- [X] T016 [P] Implement OpenAI-compatible HTTP client in `crates/tdd-llm/src/client.rs` using `reqwest` and `tokio`
+- [X] T017 [P] Implement configuration parsing for LLM and roles in `crates/tdd-llm/src/config.rs` bound to `tdd.yaml`
+- [X] T018 Add mock `LlmClient` implementation for tests in `crates/tdd-llm/src/mock.rs`
 
 **Checkpoint**: Foundation ready – orchestrator and CLI can now build on stable execution, VCS, and LLM layers.
 
