@@ -1286,8 +1286,11 @@ dependencies = [
 name = "tdd-core"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "async-trait",
  "serde",
  "serde_yaml",
+ "tdd-exec",
  "tempfile",
  "thiserror",
 ]

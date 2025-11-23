@@ -1,4 +1,4 @@
-use git2::{Commit, IndexAddOption, Repository, Signature, StatusOptions};
+use git2::{Commit, Diff, DiffFormat, IndexAddOption, Repository, Signature, StatusOptions};
 use std::path::Path;
 use thiserror::Error;
 
@@ -6,6 +6,8 @@ use thiserror::Error;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RepoState {
     pub head_commit: Option<String>,
+    pub last_commit_message: Option<String>,
+    pub last_commit_diff: Option<String>,
     pub is_clean: bool,
 }
 
@@ -61,6 +63,60 @@ impl GitVcs {
             Err(_) => Ok(vec![]),
         }
     }
+
+    fn describe_head(&self) -> Result<Option<HeadDescription>, VcsError> {
+        let reference = match self.repo.head() {
+            Ok(reference) => reference,
+            Err(_) => return Ok(None),
+        };
+
+        let oid = match reference.target() {
+            Some(oid) => oid,
+            None => return Ok(None),
+        };
+
+        let commit = self.repo.find_commit(oid)?;
+        let message = commit
+            .message()
+            .map(|msg| msg.trim().to_string())
+            .filter(|msg| !msg.is_empty());
+        let diff = self.commit_diff(&commit)?;
+
+        Ok(Some(HeadDescription {
+            id: oid.to_string(),
+            message,
+            diff,
+        }))
+    }
+
+    fn commit_diff(&self, commit: &Commit<'_>) -> Result<Option<String>, VcsError> {
+        let tree = commit.tree()?;
+        let diff = if commit.parent_count() == 0 {
+            self.repo.diff_tree_to_tree(None, Some(&tree), None)?
+        } else {
+            let parent = commit.parent(0)?.tree()?;
+            self.repo
+                .diff_tree_to_tree(Some(&parent), Some(&tree), None)?
+        };
+
+        Ok(Some(Self::format_diff(&diff)?))
+    }
+
+    fn format_diff(diff: &Diff<'_>) -> Result<String, VcsError> {
+        let mut output = String::new();
+        diff.print(DiffFormat::Patch, |_delta, _hunk, line| {
+            let line_str = String::from_utf8_lossy(line.content());
+            output.push_str(line_str.as_ref());
+            true
+        })?;
+        Ok(output)
+    }
+}
+
+struct HeadDescription {
+    id: String,
+    message: Option<String>,
+    diff: Option<String>,
 }
 
 impl Vcs for GitVcs {
@@ -77,15 +133,17 @@ impl Vcs for GitVcs {
         let mut opts = StatusOptions::new();
         opts.include_untracked(true);
         let statuses = self.repo.statuses(Some(&mut opts))?;
-        let head_commit = self
-            .repo
-            .head()
-            .ok()
-            .and_then(|head| head.target())
-            .map(|oid| oid.to_string());
+        let head_description = self.describe_head()?;
+
+        let (head_commit, last_commit_message, last_commit_diff) = match head_description {
+            Some(desc) => (Some(desc.id), desc.message, desc.diff),
+            None => (None, None, None),
+        };
 
         Ok(RepoState {
             head_commit,
+            last_commit_message,
+            last_commit_diff,
             is_clean: statuses.is_empty(),
         })
     }

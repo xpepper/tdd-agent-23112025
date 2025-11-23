@@ -7,6 +7,9 @@ edition = "2021"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
 thiserror = "1.0"
+tdd-exec = { path = "../tdd-exec" }
+anyhow = "1.0"
+async-trait = "0.1"
 
 [dev-dependencies]
 tempfile = "3.10"

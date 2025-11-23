@@ -61,5 +61,14 @@ fn git_vcs_initializes_and_commits() {
 
     let state = vcs.state().unwrap();
     assert_eq!(state.head_commit, Some(oid));
+    assert_eq!(
+        state.last_commit_message.as_deref(),
+        Some("feat: add hello")
+    );
+    assert!(state
+        .last_commit_diff
+        .as_deref()
+        .unwrap_or_default()
+        .contains("hello"));
     assert!(state.is_clean);
 }

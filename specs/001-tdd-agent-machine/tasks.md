@@ -79,10 +79,10 @@ commits.
 
 ### Core Domain & Orchestrator
 
-- [ ] T024 [US1] Define `Role`, `StepContext`, and `StepResult` types in `crates/tdd-core/src/step.rs` per spec
-- [ ] T025 [P] [US1] Define `Agent` trait and `Orchestrator` trait in `crates/tdd-core/src/orchestrator.rs`
-- [ ] T026 [US1] Implement role rotation logic and starting-role rules in `crates/tdd-core/src/orchestrator.rs`
-- [ ] T027 [US1] Implement `StepContext` builder that pulls state from `tdd-exec::Vcs`, `tdd-exec::fs`, and `kata.md`
+- [X] T024 [US1] Define `Role`, `StepContext`, and `StepResult` types in `crates/tdd-core/src/step.rs` per spec
+- [X] T025 [P] [US1] Define `Agent` trait and `Orchestrator` trait in `crates/tdd-core/src/orchestrator.rs`
+- [X] T026 [US1] Implement role rotation logic and starting-role rules in `crates/tdd-core/src/orchestrator.rs`
+- [X] T027 [US1] Implement `StepContext` builder that pulls state from `tdd-exec::Vcs`, `tdd-exec::fs`, and `kata.md`
 - [ ] T028 [US1] Implement plan persistence to `.tdd/plan/step-N-role.md` in `crates/tdd-core/src/orchestrator.rs`
 - [ ] T029 [US1] Implement orchestrator `next` method that calls `Agent::plan`, `Agent::edit`, then `Runner::fmt/check/test` with retry logic for Implementor and Refactorer
 - [ ] T030 [US1] Implement `CommitPolicy` helper in `crates/tdd-core/src/commit_policy.rs` to format conventional commit messages with context, rationale, diff summary, and verification
