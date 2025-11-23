@@ -63,7 +63,10 @@ fn handle_init(args: &InitArgs) {
 }
 
 fn handle_run(args: &RunArgs) {
-    println!("run not implemented yet: steps={}, config={}", args.steps, args.config);
+    println!(
+        "run not implemented yet: steps={}, config={}",
+        args.steps, args.config
+    );
 }
 
 fn handle_step(args: &StepArgs) {
