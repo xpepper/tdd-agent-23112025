@@ -89,12 +89,12 @@ commits.
 
 ### Agents & File Editing
 
-- [ ] T031 [US1] Implement JSON edit-plan schema and parser in `crates/tdd-agents/src/edit_plan.rs` (upsert file actions)
-- [ ] T032 [P] [US1] Implement file-application logic in `crates/tdd-agents/src/edit_plan.rs` to write full-file contents to disk, avoiding patch files
-- [ ] T033 [US1] Implement `TesterAgent` in `crates/tdd-agents/src/tester.rs` using `LlmClient` and enforcing test-only edits
-- [ ] T034 [US1] Implement `ImplementorAgent` in `crates/tdd-agents/src/implementor.rs` using `LlmClient` and enforcing minimal change to pass tests
-- [ ] T035 [US1] Implement `RefactorerAgent` in `crates/tdd-agents/src/refactorer.rs` using `LlmClient` and enforcing no test assertion changes
-- [ ] T036 [US1] Embed role-specific system prompts as constants in the respective agent modules
+- [X] T031 [US1] Implement JSON edit-plan schema and parser in `crates/tdd-agents/src/edit_plan.rs` (upsert file actions)
+- [X] T032 [P] [US1] Implement file-application logic in `crates/tdd-agents/src/edit_plan.rs` to write full-file contents to disk, avoiding patch files
+- [X] T033 [US1] Implement `TesterAgent` in `crates/tdd-agents/src/tester.rs` using `LlmClient` and enforcing test-only edits
+- [X] T034 [US1] Implement `ImplementorAgent` in `crates/tdd-agents/src/implementor.rs` using `LlmClient` and enforcing minimal change to pass tests
+- [X] T035 [US1] Implement `RefactorerAgent` in `crates/tdd-agents/src/refactorer.rs` using `LlmClient` and enforcing no test assertion changes
+- [X] T036 [US1] Embed role-specific system prompts as constants in the respective agent modules
 
 ### CLI Wiring
 

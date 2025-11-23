@@ -1274,6 +1274,17 @@ dependencies = [
 [[package]]
 name = "tdd-agents"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "serde",
+ "serde_json",
+ "tdd-core",
+ "tdd-llm",
+ "tempfile",
+ "thiserror",
+ "tokio",
+]
 
 [[package]]
 name = "tdd-cli"
