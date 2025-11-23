@@ -61,11 +61,11 @@ commits.
 
 ### Implementation for User Story 2
 
-- [ ] T019 [US2] Define CLI arguments and subcommands (including `init`) in `crates/tdd-cli/src/main.rs` using `clap`
-- [ ] T020 [P] [US2] Implement `init` handler in `crates/tdd-cli/src/main.rs` that creates `crates/` structure, `kata.md`, `tdd.yaml`, `.tdd/plan`, `.tdd/logs` if absent
-- [ ] T021 [P] [US2] Use `tdd-exec::Vcs` in `init` to initialize git repo and create initial commit if repo was empty
-- [ ] T022 [US2] Implement basic validation of `tdd.yaml` after creation (required fields, defaults) in `crates/tdd-core/src/config.rs`
-- [ ] T023 [US2] Add integration test in `crates/tdd-cli/tests/init_tests.rs` that runs `tdd-cli init` in a temp directory and asserts generated files and git repo
+- [X] T019 [US2] Define CLI arguments and subcommands (including `init`) in `crates/tdd-cli/src/main.rs` using `clap`
+- [X] T020 [P] [US2] Implement `init` handler in `crates/tdd-cli/src/main.rs` that creates `crates/` structure, `kata.md`, `tdd.yaml`, `.tdd/plan`, `.tdd/logs` if absent
+- [X] T021 [P] [US2] Use `tdd-exec::Vcs` in `init` to initialize git repo and create initial commit if repo was empty
+- [X] T022 [US2] Implement basic validation of `tdd.yaml` after creation (required fields, defaults) in `crates/tdd-core/src/config.rs`
+- [X] T023 [US2] Add integration test in `crates/tdd-cli/tests/init_tests.rs` that runs `tdd-cli init` in a temp directory and asserts generated files and git repo
 
 **Checkpoint**: `tdd-cli init` works end-to-end and prepares the workspace for automated TDD steps.
 
