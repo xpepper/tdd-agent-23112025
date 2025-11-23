@@ -317,7 +317,7 @@ pub trait Vcs {
 
 ## Optional Future Enhancements
 
-* Add per‑language runners, starting with Node and Python.
+* Add per‑language runners, starting with Python and Node.
 * Add a sandbox mode that runs agents in a temporary worktree and only commits on success.
 * Add a risk budget that controls how many files a refactor is allowed to move in a single step.
 * Add a guard that blocks refactor commits if test coverage drops.
