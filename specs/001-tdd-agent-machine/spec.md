@@ -239,10 +239,18 @@ steps without losing existing history or behavior.
 
 *Example of marking unclear requirements:*
 
-- **FR-015**: The system MUST support additional programming
-  languages beyond Rust in the future
-  [NEEDS CLARIFICATION: which languages and in what
-  priority for future versions?]
+- **FR-015**: The system MUST be explicitly scoped to Rust
+  only in v1, while designing extension points for adding
+  other languages in future versions without breaking
+  existing behavior.
+
+## Clarifications
+
+### Session 2025-11-23
+
+- Q: How should multi-language support be treated in v1?
+  → A: Rust-only v1, with extension points for future
+  languages.
 
 ### Key Entities *(include if feature involves data)*
 
