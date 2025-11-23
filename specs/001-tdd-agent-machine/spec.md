@@ -271,15 +271,15 @@ steps without losing existing history or behavior.
 ### Measurable Outcomes
 
 - **SC-001**: On a fresh directory, a user can
-  initialize a kata and run at least 3 TDD steps in a row
+  initialize a kata and run at least 10 TDD steps in a row
   with no manual intervention, resulting in a sequence of
   passing commits that follow the Tester → Implementor →
   Refactorer pattern.
 - **SC-002**: For a typical kata of moderate size,
   running a single TDD step completes within a reasonable
   time window acceptable for local development
-  (e.g., under several minutes, depending mainly on external
-  LLM latency).
+  (typically under 10 minutes with default configuration and
+  mocked or fast LLMs; dominated by external LLM latency).
 - **SC-003**: At least 90% of orchestrator and execution
   paths (including success and common failure modes) are
   covered by automated tests.

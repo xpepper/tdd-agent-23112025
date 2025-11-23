@@ -3,7 +3,11 @@
 **Input**: Design documents from `/specs/001-tdd-agent-machine/` and `initial-requirements.md`
 **Prerequisites**: plan.md (this feature), spec.md (user stories), research.md, data-model.md, contracts/
 
-**Tests**: Tests are strongly recommended for all new behavior, especially orchestrator, execution utilities, and agents, following the TDD constitution.
+**Tests**: Tests are strongly recommended for all new behavior, especially
+orchestrator, execution utilities, and agents, following the TDD
+constitution. For new behavior, write or update tests first, ensure they
+fail against current code, then implement the minimal change to make them
+pass before refactoring.
 
 **Organization**: Tasks are grouped by user story to enable independent
 implementation and testing of each story, and to support small, focused
@@ -157,7 +161,9 @@ commits.
 - [ ] T055 [P] Add additional unit tests for edge cases (timeouts, LLM errors, git failures) across `tdd-exec`, `tdd-llm`, and `tdd-core`
 - [ ] T056 Ensure `.tdd` directory handling is robust (creation, permissions, cleanup) in `tdd-core` and `tdd-cli`
 - [ ] T057 [P] Update top-level `README.md` with CLI examples, configuration documentation, and architecture overview for all crates
-- [ ] T058 Run `cargo fmt`, `cargo clippy -D warnings`, and `cargo test --all` and resolve any issues before initial release
+- [ ] T058 Run `cargo fmt`, `cargo clippy -D warnings`, and `cargo test --all`
+	as a pre-release safety gate and resolve any issues before initial
+	release
 
 ---
 
