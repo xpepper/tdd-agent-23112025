@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
+serde_json = "1.0"
 thiserror = "1.0"
 tdd-exec = { path = "../tdd-exec" }
 anyhow = "1.0"

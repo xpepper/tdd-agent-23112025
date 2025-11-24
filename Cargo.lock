@@ -1308,6 +1308,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "serde",
+ "serde_json",
  "serde_yaml",
  "tdd-exec",
  "tempfile",

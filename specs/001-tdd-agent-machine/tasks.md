@@ -114,10 +114,10 @@ commits.
 
 ### Implementation for User Story 3
 
-- [ ] T040 [US3] Define per-step JSON log schema in `crates/tdd-core/src/logging.rs` (role, step, plan path, runner outputs, commit id)
-- [ ] T041 [P] [US3] Implement log writing in orchestrator to `.tdd/logs/step-N-role.json`
-- [ ] T042 [US3] Implement `status` subcommand in `crates/tdd-cli/src/main.rs` that reads latest log and git state to print concise status
-- [ ] T043 [US3] Add integration test in `crates/tdd-cli/tests/status_tests.rs` verifying `status` output after a few mocked steps
+- [X] T040 [US3] Define per-step JSON log schema in `crates/tdd-core/src/logging.rs` (role, step, plan path, runner outputs, commit id)
+- [X] T041 [P] [US3] Implement log writing in orchestrator to `.tdd/logs/step-N-role.json`
+- [X] T042 [US3] Implement `status` subcommand in `crates/tdd-cli/src/main.rs` that reads latest log and git state to print concise status
+- [X] T043 [US3] Add integration test in `crates/tdd-cli/tests/status_tests.rs` verifying `status` output after a few mocked steps
 
 ---
 

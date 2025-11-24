@@ -13,6 +13,7 @@ use thiserror::Error;
 
 use crate::commit_policy::{CommitMessageInputs, CommitPolicy, RunnerOutcomeSummary};
 use crate::config::TddConfig;
+use crate::logging::{RunnerLog, StepLogEntry, StepLogger};
 use crate::step::{Role, StepContext, StepContextBuilder, StepResult};
 use tdd_exec::runner::{Runner, RunnerError};
 use tdd_exec::vcs::{CommitSignature, Vcs};
@@ -96,6 +97,7 @@ pub struct DefaultOrchestrator<V, R> {
     runner: R,
     agents: HashMap<Role, Arc<dyn Agent>>,
     plan_writer: PlanWriter,
+    log_writer: StepLogger,
     cycle: RoleCycle,
     step_index: u32,
     commit_author: CommitSignature,
@@ -121,6 +123,7 @@ where
         let root_buf = root.as_ref().to_path_buf();
         let repo_state = vcs.state()?;
         let plan_writer = PlanWriter::new(&root_buf, config.workspace.plan_dir.clone());
+        let log_writer = StepLogger::new(&root_buf, config.workspace.log_dir.clone());
         let agents_map = Self::index_agents(agents);
         Self::ensure_all_roles_present(&agents_map)?;
         let cycle = RoleCycle::from_history(last_role, repo_state.head_commit.is_none());
@@ -136,6 +139,7 @@ where
             runner,
             agents: agents_map,
             plan_writer,
+            log_writer,
             cycle,
             step_index: starting_step,
             commit_author,
@@ -186,6 +190,37 @@ where
         let check = self.runner.check()?;
         let test = self.runner.test()?;
         Ok(RunnerOutcomeSummary::new(fmt, check, test))
+    }
+
+    fn repo_relative_path(&self, path: &Path) -> String {
+        path.strip_prefix(&self.root)
+            .unwrap_or(path)
+            .to_string_lossy()
+            .replace('\\', "/")
+    }
+
+    fn persist_step_log(
+        &self,
+        role: Role,
+        step_result: &StepResult,
+        plan_path: &Path,
+        commit_id: &str,
+        runner: &RunnerOutcomeSummary,
+    ) -> Result<()> {
+        let entry = StepLogEntry::new(
+            self.step_index,
+            role,
+            self.repo_relative_path(plan_path),
+            step_result.files_changed.clone(),
+            commit_id,
+            &step_result.commit_message,
+            &step_result.notes,
+            RunnerLog::from_summary(runner),
+        );
+        self.log_writer
+            .write(&entry)
+            .context("failed to persist step log")?;
+        Ok(())
     }
 }
 
@@ -239,9 +274,11 @@ where
                         plan_path: &plan_path,
                         runner_outcomes: &ci,
                     });
-                    self.vcs
+                    let commit_id = self
+                        .vcs
                         .commit(&commit_message, &self.commit_author)
                         .context("failed to commit")?;
+                    self.persist_step_log(role, &step_result, &plan_path, &commit_id, &ci)?;
                     self.cycle.advance();
                     self.step_index += 1;
                     return Ok(());
@@ -416,6 +453,11 @@ mod tests {
             .map(|entry| entry.unwrap().file_name())
             .collect();
         assert_eq!(plan_files.len(), 1);
+        let log_files: HashSet<_> = fs::read_dir(temp.path().join(".tdd/logs"))
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name())
+            .collect();
+        assert_eq!(log_files.len(), 1);
         assert_eq!(orchestrator.current_role(), Role::Implementor);
         assert_eq!(orchestrator.step_index, 2);
         assert_eq!(vcs.commits.lock().unwrap().len(), 1);

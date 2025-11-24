@@ -3,7 +3,7 @@ use std::process;
 use anyhow::Result;
 use clap::{Args, CommandFactory, Parser, Subcommand};
 
-use tdd_cli::executor;
+use tdd_cli::{executor, status};
 
 #[derive(Parser, Debug)]
 #[command(name = "tdd-cli", author = "xpepper", version, about = "Autonomous Multi-Agent TDD Machine", long_about = None)]
@@ -21,7 +21,7 @@ enum Commands {
     /// Execute a single TDD step with the current role
     Step(StepArgs),
     /// Print the current automation status (role, step, last commit)
-    Status,
+    Status(StatusArgs),
     /// Diagnose environment issues (tooling, config files, git status)
     Doctor,
 }
@@ -50,6 +50,13 @@ struct StepArgs {
     config: String,
 }
 
+#[derive(Args, Debug, Default)]
+struct StatusArgs {
+    /// Optional path to configuration file
+    #[arg(long, default_value = "tdd.yaml")]
+    config: String,
+}
+
 fn main() {
     if let Err(err) = run_cli() {
         eprintln!("Error: {err:?}");
@@ -64,7 +71,7 @@ fn run_cli() -> Result<()> {
         Some(Commands::Init(args)) => handle_init(&args),
         Some(Commands::Run(args)) => handle_run(&args),
         Some(Commands::Step(args)) => handle_step(&args),
-        Some(Commands::Status) => handle_status(),
+        Some(Commands::Status(args)) => handle_status(&args),
         Some(Commands::Doctor) => handle_doctor(),
         None => {
             Cli::command().print_help()?;
@@ -90,8 +97,11 @@ fn handle_step(args: &StepArgs) -> Result<()> {
     Ok(())
 }
 
-fn handle_status() -> Result<()> {
-    println!("status not implemented yet");
+fn handle_status(args: &StatusArgs) -> Result<()> {
+    let report = status::gather_status(&args.config)?;
+    for line in report.format_lines() {
+        println!("{line}");
+    }
     Ok(())
 }
 

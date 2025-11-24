@@ -117,7 +117,7 @@ fn execute_steps(
     })
 }
 
-fn absolutize_path(path: &Path) -> Result<PathBuf> {
+pub(crate) fn absolutize_path(path: &Path) -> Result<PathBuf> {
     if path.is_absolute() {
         return Ok(path.to_path_buf());
     }
@@ -125,7 +125,7 @@ fn absolutize_path(path: &Path) -> Result<PathBuf> {
     Ok(cwd.join(path))
 }
 
-fn resolve_root(config_path: &Path) -> Result<PathBuf> {
+pub(crate) fn resolve_root(config_path: &Path) -> Result<PathBuf> {
     let root = config_path
         .parent()
         .map(Path::to_path_buf)
