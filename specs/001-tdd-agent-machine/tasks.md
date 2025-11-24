@@ -163,7 +163,7 @@ commits.
 - [ ] T057 Improve error messages and error typing using `thiserror` for user-facing failures (CLI, orchestrator, execution)
 - [ ] T058 [P] Add additional unit tests for edge cases (timeouts, LLM errors, git failures) across `tdd-exec`, `tdd-llm`, and `tdd-core`
 - [ ] T059 Ensure `.tdd` directory handling is robust (creation, permissions, cleanup) in `tdd-core` and `tdd-cli`
-- [ ] T060 [P] Update top-level `README.md` with CLI examples, configuration documentation, and architecture overview for all crates
+- [X] T060 [P] Update top-level `README.md` with CLI examples, configuration documentation, and architecture overview for all crates
 - [ ] T061 Run `cargo fmt`, `cargo clippy -D warnings`, and `cargo test --all`
 	as a pre-release safety gate and resolve any issues before initial
 	release

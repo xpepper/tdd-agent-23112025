@@ -6,70 +6,359 @@ tool keeps all state in git, writes per-step plans/logs under `.tdd/`,
 and enforces the safety gate defined in
 `.specify/memory/constitution.md`.
 
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Architecture](#architecture)
+- [Commands](#commands)
+- [Configuration](#configuration)
+- [LLM Providers](#llm-providers)
+- [Working with Existing Projects](#working-with-existing-projects)
+- [Logs and Plans](#logs-and-plans)
+- [Development Workflow](#development-workflow)
+- [Crate Structure](#crate-structure)
+- [Troubleshooting](#troubleshooting)
+
 ## Prerequisites
 
-- Rust (stable toolchain) and Cargo installed
+- Rust stable toolchain (1.75+) and Cargo
 - `git` available in `PATH`
-- OpenAI-compatible endpoint + API key (or use the mock client in
-  tests)
+- LLM provider access:
+  - **OpenAI**: API key with access to GPT models
+  - **GitHub Copilot**: Personal access token with Copilot scope
 
 ## Quick Start
 
-All commands run from the repository root:
+### New Project
 
 ```bash
+# 1. Clone or create a new directory
+mkdir my-kata && cd my-kata
+
+# 2. Initialize the TDD workspace
 cargo run -p tdd-cli -- init
+
+# 3. Edit kata.md to describe your kata
+vim kata.md
+
+# 4. Set your API key
+export OPENAI_API_KEY="your-key-here"
+
+# 5. Run autonomous TDD steps
 cargo run -p tdd-cli -- run --steps 3
+
+# 6. Check status
 cargo run -p tdd-cli -- status
 ```
 
-1. **Initialize**: `tdd-cli init` scaffolds `kata.md`, `tdd.yaml`, and
-   `.tdd/{plan,logs}/`, then initializes git (or reuses the existing
-   repo).
-2. **Run multiple steps**: `tdd-cli run --steps N` loads `tdd.yaml`,
-   spins up the orchestrator, and executes the next `N` Tester →
-   Implementor → Refactorer steps, committing after each successful
-   cycle.
-3. **Run a single step**: `tdd-cli step` is a convenience alias for
-   `run --steps 1`.
-4. **Inspect status**: `tdd-cli status` reports the next role/step,
-   last commit summary, and CI exit codes recorded in
-   `.tdd/logs/step-XXX-role.json`.
+### Existing Rust Project
 
-## Configuration (`tdd.yaml`)
+```bash
+# 1. Navigate to your existing project
+cd your-rust-project
 
-| Section | Required keys | Description |
-|---------|---------------|-------------|
-| `workspace` | `kata_file`, `plan_dir`, `log_dir`, `max_steps`, `max_attempts_per_agent` | File locations and guard rails for the loop. |
-| `roles` | `tester`, `implementor`, `refactorer` each with `model`, optional `temperature` | Per-role LLM settings. |
-| `llm` | `base_url`, `api_key_env` | OpenAI-compatible endpoint and env var name for the API key. |
-| `ci` | `fmt`, `check`, `test` (arrays) | Commands run after each edit before committing. |
-| `commit_author` | `name`, `email` | Identity used when the tool creates commits. |
+# 2. Initialize TDD workspace (non-destructive)
+cargo run -p tdd-cli -- init
 
-Update the YAML file to match your environment (e.g., change CI command
-arrays or model names). The CLI validates these values on every run.
+# 3. Configure and run
+export OPENAI_API_KEY="your-key-here"
+cargo run -p tdd-cli -- run --steps 1
+```
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    tdd-cli                          │
+│  ┌──────────┐  ┌──────────┐    ┌────────────────┐   │
+│  │   init   │  │   run    │    │    status      │   │
+│  └─────┬────┘  └────┬─────┘    └───────┬────────┘   │
+│        │            │                  │            │
+└────────┼────────────┼──────────────────┼────────────┘
+         │            │                  │
+         ▼            ▼                  ▼
+┌─────────────────────────────────────────────────────┐
+│                   tdd-core                          │
+│  ┌──────────────┐  ┌────────────┐  ┌────────────┐   │
+│  │ Orchestrator │  │   Config   │  │  Logging   │   │
+│  └──────┬───────┘  └────────────┘  └────────────┘   │
+│         │                                           │
+└─────────┼───────────────────────────────────────────┘
+          │
+          ▼
+┌────────────────────────────────────────────────────┐
+│                  tdd-agents                        │
+│  ┌────────┐  ┌─────────────┐  ┌────────────┐       │
+│  │ Tester │  │ Implementor │  │ Refactorer │       │
+│  └───┬────┘  └──────┬──────┘  └──────┬─────┘       │
+│      │              │                │             │
+└──────┼──────────────┼────────────────┼─────────────┘
+       │              │                │
+       ▼              ▼                ▼
+┌─────────────────────────────────────────────────────┐
+│                   tdd-llm                           │
+│  ┌──────────────┐         ┌──────────────────┐      │
+│  │ OpenAI Client│         │ Copilot Client   │      │
+│  └──────────────┘         └──────────────────┘      │
+└─────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│                   tdd-exec                          │
+│  ┌────────┐  ┌───────────┐  ┌──────────────┐        │
+│  │  VCS   │  │  Runner   │  │  Filesystem  │        │
+│  └────────┘  └───────────┘  └──────────────┘        │
+└─────────────────────────────────────────────────────┘
+```
+
+## Commands
+
+### `init`
+
+Initialize a TDD workspace. Safe to run in existing projects.
+
+```bash
+cargo run -p tdd-cli -- init [--config tdd.yaml]
+```
+
+**Behavior:**
+- Creates `tdd.yaml`, `kata.md`, `.tdd/plan/`, `.tdd/logs/`
+- Initializes git repository if needed
+- Detects existing Rust projects and preserves all files
+- Validates existing configurations
+
+### `run`
+
+Execute multiple TDD steps in sequence.
+
+```bash
+cargo run -p tdd-cli -- run --steps N [--config tdd.yaml]
+```
+
+**Behavior:**
+- Runs N cycles of Tester → Implementor → Refactorer
+- Creates git commit after each successful step
+- Respects `max_steps` limit in configuration
+- Stops on unrecoverable errors
+
+### `step`
+
+Execute a single TDD step (alias for `run --steps 1`).
+
+```bash
+cargo run -p tdd-cli -- step [--config tdd.yaml]
+```
+
+### `status`
+
+Display current progress and diagnostics.
+
+```bash
+cargo run -p tdd-cli -- status [--config tdd.yaml]
+```
+
+**Output:**
+- Next role to execute
+- Current step number
+- Last commit summary
+- CI command results (fmt/check/test exit codes)
+
+## Configuration
+
+Edit `tdd.yaml` to customize behavior:
+
+```yaml
+workspace:
+  kata_file: "kata.md"
+  plan_dir: ".tdd/plan"
+  log_dir: ".tdd/logs"
+  max_steps: 10
+  max_attempts_per_agent: 2
+
+roles:
+  tester:
+    model: "gpt-4o-mini"
+    temperature: 0.1
+  implementor:
+    model: "gpt-4o-mini"
+    temperature: 0.2
+  refactorer:
+    model: "gpt-4o-mini"
+    temperature: 0.15
+
+llm:
+  provider: "openai"  # or "github_copilot"
+  base_url: "https://api.openai.com/v1"
+  api_key_env: "OPENAI_API_KEY"
+
+ci:
+  fmt: ["cargo", "fmt"]
+  check: ["cargo", "clippy", "-D", "warnings"]
+  test: ["cargo", "test"]
+
+commit_author:
+  name: "Autonomous TDD Machine"
+  email: "tdd-machine@example.com"
+```
+
+## LLM Providers
+
+### OpenAI (Default)
+
+```yaml
+llm:
+  provider: "openai"
+  base_url: "https://api.openai.com/v1"
+  api_key_env: "OPENAI_API_KEY"
+```
+
+```bash
+export OPENAI_API_KEY="sk-..."
+```
+
+### GitHub Copilot
+
+```yaml
+llm:
+  provider: "github_copilot"
+  base_url: "https://api.githubcopilot.com/v1"
+  api_key_env: "GITHUB_COPILOT_TOKEN"
+  api_version: "2023-12-01"
+```
+
+```bash
+export GITHUB_COPILOT_TOKEN="ghp_..."
+```
+
+**Note:** Requires a personal access token with `read:org` and `copilot` scopes.
+
+## Working with Existing Projects
+
+The TDD machine integrates safely with existing Rust projects:
+
+1. **Detection**: Automatically detects `Cargo.toml` and `src/`
+2. **Preservation**: Never overwrites existing project files
+3. **Git History**: Respects and extends existing commit history
+4. **Baseline Check**: Runs existing tests before first TDD step
+   - Aborts if baseline tests fail
+   - Ensures autonomous changes don't break working code
+
+```bash
+cd my-existing-kata
+cargo run -p tdd-cli -- init  # Non-destructive
+cargo run -p tdd-cli -- run --steps 1
+```
 
 ## Logs and Plans
 
-- Plans: `.tdd/plan/step-XYZ-role.md` capture each agent’s reasoning.
-- Logs: `.tdd/logs/step-XYZ-role.json` store files touched, commit id,
-  notes, and CI exit codes. `tdd-cli status` reads the latest entry to
-  summarize progress.
+### Plans (`.tdd/plan/step-XYZ-role.md`)
 
-## Development Workflow & Safety Gate
+Human-readable markdown showing each agent's reasoning:
+- Context summary
+- Proposed changes
+- Rationale
 
-We follow the **TDD Agent Constitution**:
+### Logs (`.tdd/logs/step-XYZ-role.json`)
 
-1. Clarify the next small behavior change.
-2. Write or update tests to express it.
-3. Make the tests pass with the simplest change.
-4. Refactor while keeping the suite green.
-5. Run `cargo fmt`, `cargo clippy -D warnings`, and `cargo test --all`.
-6. Commit a focused, reversible change.
+Machine-readable JSON capturing:
+- `step_index`: Step number
+- `role`: tester/implementor/refactorer
+- `provider`: LLM provider used
+- `files_changed`: List of modified files
+- `commit_id`: Resulting git SHA
+- `runner`: CI command results (exit codes, stdout, stderr)
 
-Readable code, consistent quality, and small commits are mandatory.
-Before every commit, the safety gate requires a clean `cargo test`,
-`cargo fmt`, and linting run.
+## Development Workflow
+
+This project follows the **TDD Agent Constitution**:
+
+### Principles
+
+1. **Readable, Intent-Revealing Code**: Clear naming, no side effects
+2. **Consistent Quality**: No dead code, follow existing patterns
+3. **Test-Driven Development**: Tests first, then implementation
+4. **Small, Focused Commits**: Each commit tells one story
+5. **Pre-Commit Safety Gate**: All checks must pass before commit
+
+### Safety Gate
+
+Before every commit:
+```bash
+cargo fmt
+cargo clippy -D warnings
+cargo test --all
+```
+
+All three must succeed.
 
 For the full constitution, see
 `.specify/memory/constitution.md`.
+
+## Crate Structure
+
+```
+crates/
+├── tdd-cli/          # CLI interface (clap, main entry point)
+├── tdd-core/         # Domain models, orchestrator, config
+├── tdd-agents/       # Agent implementations (tester, implementor, refactorer)
+├── tdd-exec/         # Execution utilities (git, runner, filesystem)
+├── tdd-llm/          # LLM client abstractions and providers
+└── tdd-fixtures/     # Test fixtures and utilities
+```
+
+### Key Types
+
+- **`TddConfig`** (`tdd-core`): Workspace configuration from YAML
+- **`Orchestrator`** (`tdd-core`): Coordinates agent execution
+- **`Agent`** (`tdd-agents`): Trait for tester/implementor/refactorer
+- **`LlmClient`** (`tdd-llm`): LLM provider abstraction
+- **`Vcs`** (`tdd-exec`): Version control operations
+- **`Runner`** (`tdd-exec`): CI command execution
+
+## Troubleshooting
+
+### "Baseline test check failed"
+
+**Cause:** Existing tests are failing before TDD loop starts.
+
+**Solution:**
+```bash
+cargo test  # Fix failing tests manually
+cargo run -p tdd-cli -- run --steps 1  # Retry
+```
+
+### "Missing API key"
+
+**Cause:** LLM provider API key not set.
+
+**Solution:**
+```bash
+# For OpenAI
+export OPENAI_API_KEY="your-key"
+
+# For GitHub Copilot
+export GITHUB_COPILOT_TOKEN="your-token"
+```
+
+### "Failed to parse YAML config"
+
+**Cause:** Invalid `tdd.yaml` syntax or missing required fields.
+
+**Solution:**
+```bash
+cargo run -p tdd-cli -- init  # Regenerate default config
+# Or fix syntax errors manually
+```
+
+### "Workspace already reached max_steps"
+
+**Cause:** Hit the `max_steps` limit in configuration.
+
+**Solution:**
+- Increase `workspace.max_steps` in `tdd.yaml`, or
+- Remove old plan files from `.tdd/plan/` to reset counter
+
+---
+
+**License:** See repository license
+**Contributing:** Follow the TDD constitution in `.specify/memory/constitution.md`
