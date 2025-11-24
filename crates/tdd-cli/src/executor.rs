@@ -20,7 +20,7 @@ use tdd_exec::{
     vcs::{CommitSignature, GitVcs, RepoState, Vcs, VcsError},
 };
 use tdd_llm::{
-    client::{LlmClient, OpenAiClient},
+    client::{create_client, LlmClient},
     config::LlmClientSettings,
 };
 
@@ -34,8 +34,12 @@ pub fn run_steps(config_path: impl AsRef<Path>, requested_steps: u32) -> Result<
     let config_path = absolutize_path(config_path.as_ref())?;
     let config = TddConfig::load_from_file(&config_path)?;
     let settings = LlmClientSettings::from_core_config(&config);
-    let llm: Arc<dyn LlmClient> =
-        Arc::new(OpenAiClient::new(settings).context("failed to initialize LLM client")?);
+    let llm = create_client(
+        config.llm.provider,
+        settings,
+        config.llm.effective_api_version(),
+    )
+    .context("failed to initialize LLM client")?;
     execute_steps(&config_path, config, requested_steps, llm)
 }
 

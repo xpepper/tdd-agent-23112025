@@ -21,6 +21,7 @@ pub struct StepLogEntry {
     pub commit_id: String,
     pub commit_message: String,
     pub notes: String,
+    pub provider: String,
     pub runner: RunnerLog,
 }
 
@@ -33,6 +34,7 @@ impl StepLogEntry {
         commit_id: impl Into<String>,
         commit_message: impl Into<String>,
         notes: impl Into<String>,
+        provider: impl Into<String>,
         runner: RunnerLog,
     ) -> Self {
         Self {
@@ -43,6 +45,7 @@ impl StepLogEntry {
             commit_id: commit_id.into(),
             commit_message: commit_message.into(),
             notes: notes.into(),
+            provider: provider.into(),
             runner,
         }
     }
@@ -256,6 +259,7 @@ mod tests {
             "abc123",
             "test: add failing case",
             "notes",
+            "openai",
             sample_runner_log(),
         );
         let path = logger.write(&entry).unwrap();
@@ -276,6 +280,7 @@ mod tests {
             "id",
             "msg",
             "notes",
+            "openai",
             sample_runner_log(),
         );
         logger.write(&base_entry).unwrap();

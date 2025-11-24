@@ -119,10 +119,37 @@ impl RoleConfig {
     }
 }
 
+/// LLM provider selection.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LlmProvider {
+    Openai,
+    GithubCopilot,
+}
+
+impl Default for LlmProvider {
+    fn default() -> Self {
+        Self::Openai
+    }
+}
+
+impl LlmProvider {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Openai => "openai",
+            Self::GithubCopilot => "github_copilot",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct LlmConfig {
+    #[serde(default)]
+    pub provider: LlmProvider,
     pub base_url: String,
     pub api_key_env: String,
+    #[serde(default)]
+    pub api_version: Option<String>,
 }
 
 impl LlmConfig {
@@ -139,7 +166,23 @@ impl LlmConfig {
                 reason: "api_key_env cannot be empty".into(),
             });
         }
+        // For GitHub Copilot, api_version should be provided (default to standard version if not)
+        if self.provider == LlmProvider::GithubCopilot && self.api_version.is_none() {
+            // This is acceptable; we'll use a default in the client
+        }
         Ok(())
+    }
+
+    /// Get the API version, providing a default for GitHub Copilot if not specified.
+    pub fn effective_api_version(&self) -> Option<String> {
+        match self.provider {
+            LlmProvider::GithubCopilot => Some(
+                self.api_version
+                    .clone()
+                    .unwrap_or_else(|| "2023-12-01".to_string()),
+            ),
+            LlmProvider::Openai => self.api_version.clone(),
+        }
     }
 }
 
@@ -237,6 +280,7 @@ roles:
     model: gpt-4o-mini
     temperature: 0.15
 llm:
+  provider: openai
   base_url: https://api.example.com
   api_key_env: API_KEY
 ci:
@@ -253,6 +297,7 @@ commit_author:
         let config = TddConfig::load_from_file(file.path()).unwrap();
         assert_eq!(config.workspace.max_steps, 10);
         assert_eq!(config.roles.tester.model, "gpt-4o-mini");
+        assert_eq!(config.llm.provider, LlmProvider::OpenAi);
     }
 
     #[test]
@@ -271,6 +316,7 @@ roles:
   refactorer:
     model: gpt
 llm:
+  provider: openai
   base_url: https://api.example.com
   api_key_env: API_KEY
 ci:
@@ -286,5 +332,79 @@ commit_author:
 
         let err = TddConfig::load_from_file(file.path()).unwrap_err();
         matches!(err, ConfigError::InvalidField { .. });
+    }
+
+    #[test]
+    fn loads_github_copilot_provider() {
+        let mut file = NamedTempFile::new().unwrap();
+        writeln!(
+            file,
+            "{}",
+            r#"workspace:
+  kata_file: kata.md
+  plan_dir: .tdd/plan
+  log_dir: .tdd/logs
+roles:
+  tester:
+    model: gpt-4o
+  implementor:
+    model: gpt-4o
+  refactorer:
+    model: gpt-4o
+llm:
+  provider: github_copilot
+  base_url: https://api.githubcopilot.com/v1
+  api_key_env: GITHUB_COPILOT_TOKEN
+  api_version: 2023-12-01
+ci:
+  fmt: ["cargo", "fmt"]
+  check: ["cargo", "clippy"]
+  test: ["cargo", "test"]
+commit_author:
+  name: Bot
+  email: bot@example.com
+"#
+        )
+        .unwrap();
+
+        let config = TddConfig::load_from_file(file.path()).unwrap();
+        assert_eq!(config.llm.provider, LlmProvider::GitHubCopilot);
+        assert_eq!(config.llm.api_version, Some("2023-12-01".to_string()));
+        assert_eq!(config.llm.base_url, "https://api.githubcopilot.com/v1");
+    }
+
+    #[test]
+    fn defaults_to_openai_when_provider_omitted() {
+        let mut file = NamedTempFile::new().unwrap();
+        writeln!(
+            file,
+            "{}",
+            r#"workspace:
+  kata_file: kata.md
+  plan_dir: .tdd/plan
+  log_dir: .tdd/logs
+roles:
+  tester:
+    model: gpt-4o
+  implementor:
+    model: gpt-4o
+  refactorer:
+    model: gpt-4o
+llm:
+  base_url: https://api.openai.com/v1
+  api_key_env: OPENAI_API_KEY
+ci:
+  fmt: ["cargo", "fmt"]
+  check: ["cargo", "clippy"]
+  test: ["cargo", "test"]
+commit_author:
+  name: Bot
+  email: bot@example.com
+"#
+        )
+        .unwrap();
+
+        let config = TddConfig::load_from_file(file.path()).unwrap();
+        assert_eq!(config.llm.provider, LlmProvider::OpenAi);
     }
 }

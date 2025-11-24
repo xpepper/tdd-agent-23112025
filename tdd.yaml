@@ -16,8 +16,20 @@ roles:
     model: "gpt-4o-mini"
     temperature: 0.15
 llm:
+  # Provider selection: openai or github_copilot (defaults to openai)
+  provider: "openai"
   base_url: "https://api.openai.com/v1"
   api_key_env: "OPENAI_API_KEY"
+  # Optional: API version (required for GitHub Copilot, auto-defaults to 2023-12-01)
+  # api_version: "2023-12-01"
+
+# Example GitHub Copilot configuration (uncomment to use):
+# llm:
+#   provider: "github_copilot"
+#   base_url: "https://api.githubcopilot.com/v1"
+#   api_key_env: "GITHUB_COPILOT_TOKEN"
+#   api_version: "2023-12-01"
+
 ci:
   fmt: ["cargo", "fmt"]
   check: ["cargo", "clippy", "-D", "warnings"]

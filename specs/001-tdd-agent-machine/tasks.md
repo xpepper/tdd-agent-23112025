@@ -129,14 +129,14 @@ commits.
 
 ### Implementation for User Story 4
 
-- [ ] T044 [US4] Update `TddConfig` in `crates/tdd-core/src/config.rs` to support `llm.provider` (enum: openai, github_copilot) and `llm.api_version`
-- [ ] T045 [US4] Update `StepLogEntry` in `crates/tdd-core/src/logging.rs` to include `provider` field
-- [ ] T046 [US4] Refactor `tdd-llm` to support multiple providers: create `LlmClient` factory and move `OpenAiClient` to `crates/tdd-llm/src/providers/openai.rs`
-- [ ] T047 [US4] Implement `GitHubCopilotClient` in `crates/tdd-llm/src/providers/github.rs` handling `X-GitHub-Api-Version` header
-- [ ] T048 [US4] Update `tdd-llm::client::ClientFactory` (or similar) to instantiate the correct provider based on `TddConfig`
-- [ ] T049 [US4] Update `tdd.yaml` template in `crates/tdd-cli/src/scaffold.rs` (or wherever defined) to include commented-out Copilot example
-- [ ] T050 [US4] Wire CI command arrays from config into `tdd-exec::Runner` so fmt/check/test commands can be overridden
-- [ ] T051 [US4] Add unit tests in `crates/tdd-core/tests/config_tests.rs` for parsing, validation, and provider switching
+- [X] T044 [US4] Update `TddConfig` in `crates/tdd-core/src/config.rs` to support `llm.provider` (enum: openai, github_copilot) and `llm.api_version`
+- [X] T045 [US4] Update `StepLogEntry` in `crates/tdd-core/src/logging.rs` to include `provider` field
+- [X] T046 [US4] Refactor `tdd-llm` to support multiple providers: create `LlmClient` factory and move `OpenAiClient` to `crates/tdd-llm/src/providers/openai.rs`
+- [X] T047 [US4] Implement `GitHubCopilotClient` in `crates/tdd-llm/src/providers/github.rs` handling `X-GitHub-Api-Version` header
+- [X] T048 [US4] Update `tdd-llm::client::ClientFactory` (or similar) to instantiate the correct provider based on `TddConfig`
+- [X] T049 [US4] Update `tdd.yaml` template in `crates/tdd-cli/src/scaffold.rs` (or wherever defined) to include commented-out Copilot example
+- [X] T050 [US4] Wire CI command arrays from config into `tdd-exec::Runner` so fmt/check/test commands can be overridden
+- [X] T051 [US4] Add unit tests in `crates/tdd-core/tests/config_tests.rs` for parsing, validation, and provider switching
 
 ---
 

@@ -215,6 +215,7 @@ where
             commit_id,
             &step_result.commit_message,
             &step_result.notes,
+            self.config.llm.provider.as_str(),
             RunnerLog::from_summary(runner),
         );
         self.log_writer
