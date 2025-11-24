@@ -95,6 +95,22 @@ fn execute_steps(
         bail!("no steps available within configured limits");
     }
 
+    // Baseline test check: if this is an existing project with tests, ensure they pass
+    if starting_step == 1 && has_existing_tests(&root)? {
+        println!("🔍 Detected existing tests - running baseline check...");
+        let baseline_result = runner.test();
+        if baseline_result.code != 0 {
+            bail!(
+                "Baseline test check failed. Existing tests must pass before autonomous TDD steps can run.\n\
+                 Fix the failing tests manually, then try again.\n\n\
+                 Test output:\n{}\n{}",
+                baseline_result.stdout,
+                baseline_result.stderr
+            );
+        }
+        println!("✓ Baseline tests pass");
+    }
+
     let agents = build_agents(&root, llm);
     let mut orchestrator = DefaultOrchestrator::new(
         &root,
@@ -197,6 +213,43 @@ fn parse_plan_filename(name: &OsStr) -> Option<(u32, Role)> {
         _ => return None,
     };
     Some((step, role))
+}
+
+fn has_existing_tests(root: &Path) -> Result<bool> {
+    // Check for common test file patterns in Rust projects
+    let tests_dir = root.join("tests");
+    let src_dir = root.join("src");
+
+    // Check if tests/ directory exists and has .rs files
+    if tests_dir.exists() && tests_dir.is_dir() {
+        let has_test_files = fs::read_dir(&tests_dir)?
+            .filter_map(|entry| entry.ok())
+            .any(|entry| {
+                entry.path().extension()
+                    .map(|ext| ext == "rs")
+                    .unwrap_or(false)
+            });
+        if has_test_files {
+            return Ok(true);
+        }
+    }
+
+    // Check if src/ directory has files with #[cfg(test)] or #[test] attributes
+    if src_dir.exists() && src_dir.is_dir() {
+        for entry in fs::read_dir(&src_dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.extension().map(|ext| ext == "rs").unwrap_or(false) {
+                if let Ok(content) = fs::read_to_string(&path) {
+                    if content.contains("#[test]") || content.contains("#[cfg(test)]") {
+                        return Ok(true);
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(false)
 }
 
 fn build_agents(root: &Path, llm: Arc<dyn LlmClient>) -> Vec<Arc<dyn Agent>> {

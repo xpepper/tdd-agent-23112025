@@ -3,7 +3,7 @@ use std::process;
 use anyhow::Result;
 use clap::{Args, CommandFactory, Parser, Subcommand};
 
-use tdd_cli::{executor, status};
+use tdd_cli::{executor, init, status};
 
 #[derive(Parser, Debug)]
 #[command(name = "tdd-cli", author = "xpepper", version, about = "Autonomous Multi-Agent TDD Machine", long_about = None)]
@@ -81,7 +81,18 @@ fn run_cli() -> Result<()> {
 }
 
 fn handle_init(args: &InitArgs) -> Result<()> {
-    println!("init not implemented yet: using config {}", args.config);
+    let result = init::initialize_workspace(&args.config)?;
+
+    println!("\n🎉 Workspace initialized successfully!");
+    if result.workspace_exists {
+        println!("   Integrated with existing Rust project");
+    }
+    println!("\nNext steps:");
+    println!("  1. Edit kata.md to describe your kata");
+    println!("  2. Configure {} if needed", args.config);
+    println!("  3. Set your API key: export OPENAI_API_KEY=your-key");
+    println!("  4. Run: cargo run -p tdd-cli -- run --steps 3");
+
     Ok(())
 }
 

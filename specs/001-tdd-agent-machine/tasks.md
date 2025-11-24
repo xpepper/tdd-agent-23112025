@@ -148,10 +148,10 @@ commits.
 
 ### Implementation for User Story 5
 
-- [ ] T052 [US5] Adjust `init` logic in `crates/tdd-cli/src/main.rs` to detect existing Rust projects and skip recreating workspace files
-- [ ] T053 [US5] Ensure `tdd-exec::Vcs` respects existing git history and only adds new commits for tool actions
-- [ ] T054 [US5] Implement baseline test check in orchestrator that aborts if existing tests fail before running autonomous steps
-- [ ] T055 [US5] Add integration test in `crates/tdd-cli/tests/existing_repo_tests.rs` with a pre-populated Rust project
+- [X] T052 [US5] Adjust `init` logic in `crates/tdd-cli/src/main.rs` to detect existing Rust projects and skip recreating workspace files
+- [X] T053 [US5] Ensure `tdd-exec::Vcs` respects existing git history and only adds new commits for tool actions
+- [X] T054 [US5] Implement baseline test check in orchestrator that aborts if existing tests fail before running autonomous steps
+- [X] T055 [US5] Add integration test in `crates/tdd-cli/tests/existing_repo_tests.rs` with a pre-populated Rust project
 
 ---
 
