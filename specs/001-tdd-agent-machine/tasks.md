@@ -123,17 +123,20 @@ commits.
 
 ## Phase 6: User Story 4 - Configure models and CI commands (Priority: P2) [US4]
 
-**Goal**: Allow configuration of per-role LLM models, base URL, API key env var, and CI commands through `tdd.yaml`.
+**Goal**: Allow configuration of per-role LLM models, base URL, API key env var, and CI commands through `tdd.yaml`. **New**: Add support for GitHub Copilot as an LLM provider.
 
-**Independent Test**: Updating `tdd.yaml` changes which models and commands are used, without recompiling.
+**Independent Test**: Updating `tdd.yaml` changes which models and commands are used, without recompiling. Switching `llm.provider` to `github_copilot` successfully invokes the Copilot API.
 
 ### Implementation for User Story 4
 
-- [ ] T044 [US4] Extend configuration structs in `crates/tdd-core/src/config.rs` to match `tdd.yaml` example (roles, LLM, CI, commit author)
-- [ ] T045 [P] [US4] Implement configuration loader in `crates/tdd-core/src/config.rs` that validates required fields and supplies defaults
-- [ ] T046 [US4] Wire per-role model/temperature and base URL from config into `tdd-llm::client` construction
-- [ ] T047 [US4] Wire CI command arrays from config into `tdd-exec::Runner` so fmt/check/test commands can be overridden
-- [ ] T048 [US4] Add unit tests in `crates/tdd-core/tests/config_tests.rs` for parsing, validation, and override behavior
+- [ ] T044 [US4] Update `TddConfig` in `crates/tdd-core/src/config.rs` to support `llm.provider` (enum: openai, github_copilot) and `llm.api_version`
+- [ ] T045 [US4] Update `StepLogEntry` in `crates/tdd-core/src/logging.rs` to include `provider` field
+- [ ] T046 [US4] Refactor `tdd-llm` to support multiple providers: create `LlmClient` factory and move `OpenAiClient` to `crates/tdd-llm/src/providers/openai.rs`
+- [ ] T047 [US4] Implement `GitHubCopilotClient` in `crates/tdd-llm/src/providers/github.rs` handling `X-GitHub-Api-Version` header
+- [ ] T048 [US4] Update `tdd-llm::client::ClientFactory` (or similar) to instantiate the correct provider based on `TddConfig`
+- [ ] T049 [US4] Update `tdd.yaml` template in `crates/tdd-cli/src/scaffold.rs` (or wherever defined) to include commented-out Copilot example
+- [ ] T050 [US4] Wire CI command arrays from config into `tdd-exec::Runner` so fmt/check/test commands can be overridden
+- [ ] T051 [US4] Add unit tests in `crates/tdd-core/tests/config_tests.rs` for parsing, validation, and provider switching
 
 ---
 
@@ -145,10 +148,10 @@ commits.
 
 ### Implementation for User Story 5
 
-- [ ] T049 [US5] Adjust `init` logic in `crates/tdd-cli/src/main.rs` to detect existing Rust projects and skip recreating workspace files
-- [ ] T050 [US5] Ensure `tdd-exec::Vcs` respects existing git history and only adds new commits for tool actions
-- [ ] T051 [US5] Implement baseline test check in orchestrator that aborts if existing tests fail before running autonomous steps
-- [ ] T052 [US5] Add integration test in `crates/tdd-cli/tests/existing_repo_tests.rs` with a pre-populated Rust project
+- [ ] T052 [US5] Adjust `init` logic in `crates/tdd-cli/src/main.rs` to detect existing Rust projects and skip recreating workspace files
+- [ ] T053 [US5] Ensure `tdd-exec::Vcs` respects existing git history and only adds new commits for tool actions
+- [ ] T054 [US5] Implement baseline test check in orchestrator that aborts if existing tests fail before running autonomous steps
+- [ ] T055 [US5] Add integration test in `crates/tdd-cli/tests/existing_repo_tests.rs` with a pre-populated Rust project
 
 ---
 
@@ -156,12 +159,12 @@ commits.
 
 **Purpose**: Cross-story improvements and final hardening
 
-- [ ] T053 [P] Add or refine Rustdoc comments for all public types and functions across crates
-- [ ] T054 Improve error messages and error typing using `thiserror` for user-facing failures (CLI, orchestrator, execution)
-- [ ] T055 [P] Add additional unit tests for edge cases (timeouts, LLM errors, git failures) across `tdd-exec`, `tdd-llm`, and `tdd-core`
-- [ ] T056 Ensure `.tdd` directory handling is robust (creation, permissions, cleanup) in `tdd-core` and `tdd-cli`
-- [ ] T057 [P] Update top-level `README.md` with CLI examples, configuration documentation, and architecture overview for all crates
-- [ ] T058 Run `cargo fmt`, `cargo clippy -D warnings`, and `cargo test --all`
+- [ ] T056 [P] Add or refine Rustdoc comments for all public types and functions across crates
+- [ ] T057 Improve error messages and error typing using `thiserror` for user-facing failures (CLI, orchestrator, execution)
+- [ ] T058 [P] Add additional unit tests for edge cases (timeouts, LLM errors, git failures) across `tdd-exec`, `tdd-llm`, and `tdd-core`
+- [ ] T059 Ensure `.tdd` directory handling is robust (creation, permissions, cleanup) in `tdd-core` and `tdd-cli`
+- [ ] T060 [P] Update top-level `README.md` with CLI examples, configuration documentation, and architecture overview for all crates
+- [ ] T061 Run `cargo fmt`, `cargo clippy -D warnings`, and `cargo test --all`
 	as a pre-release safety gate and resolve any issues before initial
 	release
 
