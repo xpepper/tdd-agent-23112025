@@ -1,0 +1,333 @@
+openapi: 3.1.0
+info:
+  title: TDD Agent Machine CLI Contract
+  version: 0.1.0
+  description: >-
+    Logical API surface that mirrors the CLI commands for initializing kata workspaces,
+    running multi-agent TDD loops, and querying logs. The CLI reuses the same request
+    shapes when parsing YAML/CLI flags.
+servers:
+  - url: https://local-cli
+    description: Placeholder server representing local CLI invocation.
+paths:
+  /init:
+    post:
+      summary: Initialize a workspace for the TDD machine
+      description: Creates kata files, default configuration, `.tdd` directories, and git repo.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitRequest'
+      responses:
+        '201':
+          description: Workspace initialized successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitResponse'
+        '409':
+          description: Workspace already initialized
+  /steps/run:
+    post:
+      summary: Execute multiple TDD steps (Tester → Implementor → Refactorer)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunStepsRequest'
+      responses:
+        '202':
+          description: Steps queued/executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunStepsResponse'
+  /steps/next:
+    post:
+      summary: Execute a single TDD step
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SingleStepRequest'
+      responses:
+        '202':
+          description: Step started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunStepsResponse'
+  /status:
+    get:
+      summary: Inspect orchestrator state
+      responses:
+        '200':
+          description: Current status information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+  /logs/{step}:
+    get:
+      summary: Retrieve a persisted step log
+      parameters:
+        - in: path
+          name: step
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: role
+          required: false
+          schema:
+            type: string
+            enum: [tester, implementor, refactorer]
+      responses:
+        '200':
+          description: Step log entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StepLogEntry'
+        '404':
+          description: No log for the requested step
+  /doctor:
+    post:
+      summary: Verify environment prerequisites (CI commands, git status, token availability)
+      responses:
+        '200':
+          description: Doctor report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorResponse'
+
+components:
+  schemas:
+    InitRequest:
+      type: object
+      properties:
+        kataFile:
+          type: string
+          description: Relative path where `kata.md` should be created
+          default: kata.md
+        llm:
+          $ref: '#/components/schemas/LlmConfig'
+        commitAuthor:
+          $ref: '#/components/schemas/CommitAuthor'
+      required: [kataFile, llm, commitAuthor]
+    InitResponse:
+      type: object
+      properties:
+        initialized:
+          type: boolean
+        message:
+          type: string
+    RunStepsRequest:
+      type: object
+      properties:
+        steps:
+          type: integer
+          minimum: 1
+          maximum: 50
+        planOnly:
+          type: boolean
+          description: When true, emit plans but skip file writes (dry run)
+          default: false
+      required: [steps]
+    SingleStepRequest:
+      allOf:
+        - $ref: '#/components/schemas/RunStepsRequest'
+      description: Alias for `steps=1` convenience execution.
+    RunStepsResponse:
+      type: object
+      properties:
+        executed:
+          type: integer
+        nextRole:
+          type: string
+          enum: [tester, implementor, refactorer]
+        lastCommit:
+          $ref: '#/components/schemas/CommitSummary'
+    StatusResponse:
+      type: object
+      properties:
+        nextRole:
+          type: string
+          enum: [tester, implementor, refactorer]
+        stepIndex:
+          type: integer
+        lastLog:
+          $ref: '#/components/schemas/StepLogEntry'
+        config:
+          $ref: '#/components/schemas/TddConfig'
+    StepLogEntry:
+      type: object
+      properties:
+        stepIndex:
+          type: integer
+        role:
+          type: string
+          enum: [tester, implementor, refactorer]
+        planPath:
+          type: string
+        filesChanged:
+          type: array
+          items:
+            type: string
+        commitId:
+          type: string
+        commitMessage:
+          type: string
+        notes:
+          type: string
+        provider:
+          type: string
+          enum: [openai, github_copilot]
+        runner:
+          $ref: '#/components/schemas/RunnerLog'
+      required:
+        [stepIndex, role, planPath, filesChanged, commitId, commitMessage, provider, runner]
+    RunnerLog:
+      type: object
+      properties:
+        fmt:
+          $ref: '#/components/schemas/CommandLog'
+        check:
+          $ref: '#/components/schemas/CommandLog'
+        test:
+          $ref: '#/components/schemas/CommandLog'
+      required: [fmt, check, test]
+    CommandLog:
+      type: object
+      properties:
+        code:
+          type: integer
+        stdout:
+          type: string
+        stderr:
+          type: string
+      required: [code, stdout, stderr]
+    DoctorResponse:
+      type: object
+      properties:
+        gitClean:
+          type: boolean
+        ci:
+          type: object
+          properties:
+            fmt:
+              type: boolean
+            check:
+              type: boolean
+            test:
+              type: boolean
+        llm:
+          type: object
+          properties:
+            provider:
+              type: string
+              enum: [openai, github_copilot]
+            tokenLoaded:
+              type: boolean
+            baseUrlReachable:
+              type: boolean
+      required: [gitClean, ci, llm]
+    CommitSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        message:
+          type: string
+    TddConfig:
+      type: object
+      properties:
+        workspace:
+          $ref: '#/components/schemas/WorkspaceConfig'
+        roles:
+          type: object
+          properties:
+            tester:
+              $ref: '#/components/schemas/RoleConfig'
+            implementor:
+              $ref: '#/components/schemas/RoleConfig'
+            refactorer:
+              $ref: '#/components/schemas/RoleConfig'
+        llm:
+          $ref: '#/components/schemas/LlmConfig'
+        ci:
+          $ref: '#/components/schemas/CiConfig'
+        commitAuthor:
+          $ref: '#/components/schemas/CommitAuthor'
+      required: [workspace, roles, llm, ci, commitAuthor]
+    WorkspaceConfig:
+      type: object
+      properties:
+        kataFile:
+          type: string
+        planDir:
+          type: string
+        logDir:
+          type: string
+        maxSteps:
+          type: integer
+        maxAttemptsPerAgent:
+          type: integer
+      required: [kataFile, planDir, logDir]
+    RoleConfig:
+      type: object
+      properties:
+        model:
+          type: string
+        temperature:
+          type: number
+          minimum: 0
+          maximum: 2
+      required: [model]
+    LlmConfig:
+      type: object
+      properties:
+        provider:
+          type: string
+          enum: [openai, github_copilot]
+          default: openai
+        baseUrl:
+          type: string
+          format: uri
+        apiKeyEnv:
+          type: string
+        apiVersion:
+          type: string
+          description: Required for GitHub Copilot to populate X-GitHub-Api-Version
+      required: [baseUrl, apiKeyEnv]
+    CiConfig:
+      type: object
+      properties:
+        fmt:
+          type: array
+          items:
+            type: string
+        check:
+          type: array
+          items:
+            type: string
+        test:
+          type: array
+          items:
+            type: string
+      required: [fmt, check, test]
+    CommitAuthor:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+      required: [name, email]
