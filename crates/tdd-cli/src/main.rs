@@ -1,4 +1,9 @@
+use std::process;
+
+use anyhow::Result;
 use clap::{Args, CommandFactory, Parser, Subcommand};
+
+use tdd_cli::executor;
 
 #[derive(Parser, Debug)]
 #[command(name = "tdd-cli", author = "xpepper", version, about = "Autonomous Multi-Agent TDD Machine", long_about = None)]
@@ -46,6 +51,13 @@ struct StepArgs {
 }
 
 fn main() {
+    if let Err(err) = run_cli() {
+        eprintln!("Error: {err:?}");
+        process::exit(1);
+    }
+}
+
+fn run_cli() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
@@ -54,29 +66,50 @@ fn main() {
         Some(Commands::Step(args)) => handle_step(&args),
         Some(Commands::Status) => handle_status(),
         Some(Commands::Doctor) => handle_doctor(),
-        None => Cli::command().print_help().expect("failed to print help"),
+        None => {
+            Cli::command().print_help()?;
+            Ok(())
+        }
     }
 }
 
-fn handle_init(args: &InitArgs) {
+fn handle_init(args: &InitArgs) -> Result<()> {
     println!("init not implemented yet: using config {}", args.config);
+    Ok(())
 }
 
-fn handle_run(args: &RunArgs) {
-    println!(
-        "run not implemented yet: steps={}, config={}",
-        args.steps, args.config
-    );
+fn handle_run(args: &RunArgs) -> Result<()> {
+    let summary = executor::run_steps(&args.config, args.steps)?;
+    report_summary("run", summary);
+    Ok(())
 }
 
-fn handle_step(args: &StepArgs) {
-    println!("step not implemented yet: config {}", args.config);
+fn handle_step(args: &StepArgs) -> Result<()> {
+    let summary = executor::run_steps(&args.config, 1)?;
+    report_summary("step", summary);
+    Ok(())
 }
 
-fn handle_status() {
+fn handle_status() -> Result<()> {
     println!("status not implemented yet");
+    Ok(())
 }
 
-fn handle_doctor() {
+fn handle_doctor() -> Result<()> {
     println!("doctor not implemented yet");
+    Ok(())
+}
+
+fn report_summary(command: &str, summary: executor::ExecutionSummary) {
+    if summary.executed == summary.requested {
+        println!(
+            "{command} completed {} step(s) successfully.",
+            summary.executed
+        );
+    } else {
+        println!(
+            "{command} executed {} of {} requested step(s) due to max_steps limit.",
+            summary.executed, summary.requested
+        );
+    }
 }

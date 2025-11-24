@@ -98,9 +98,9 @@ commits.
 
 ### CLI Wiring
 
-- [ ] T037 [US1] Implement `run --steps N` subcommand in `crates/tdd-cli/src/main.rs` that loads config, constructs orchestrator, and executes N steps
-- [ ] T038 [US1] Implement `step` subcommand in `crates/tdd-cli/src/main.rs` that executes a single orchestrator step
-- [ ] T039 [US1] Add integration test in `crates/tdd-cli/tests/run_loop_tests.rs` that uses a mocked `LlmClient` to verify role sequence and commit creation for 3 steps
+- [X] T037 [US1] Implement `run --steps N` subcommand in `crates/tdd-cli/src/main.rs` that loads config, constructs orchestrator, and executes N steps
+- [X] T038 [US1] Implement `step` subcommand in `crates/tdd-cli/src/main.rs` that executes a single orchestrator step
+- [X] T039 [US1] Add integration test in `crates/tdd-cli/tests/run_loop_tests.rs` that uses a mocked `LlmClient` to verify role sequence and commit creation for 3 steps
 
 **Checkpoint**: `tdd-cli run --steps 3` and `tdd-cli step` function with mocked LLMs, producing correct role sequence and commits under passing tests.
 

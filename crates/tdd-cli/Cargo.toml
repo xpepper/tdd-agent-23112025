@@ -4,4 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = "1.0"
 clap = { version = "4.5.7", features = ["derive"] }
+tdd-agents = { path = "../tdd-agents" }
+tdd-core = { path = "../tdd-core" }
+tdd-exec = { path = "../tdd-exec" }
+tdd-llm = { path = "../tdd-llm" }
+tokio = { version = "1.41", features = ["rt-multi-thread"] }
+
+[dev-dependencies]
+git2 = "0.19"
+tempfile = "3.10"
