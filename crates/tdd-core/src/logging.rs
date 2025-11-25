@@ -26,6 +26,7 @@ pub struct StepLogEntry {
 }
 
 impl StepLogEntry {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         step_index: u32,
         role: Role,

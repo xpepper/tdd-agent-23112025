@@ -16,7 +16,7 @@ use tdd_core::{
     step::Role,
 };
 use tdd_exec::{
-    runner::{CommandRunner, RunnerCommands},
+    runner::{CommandRunner, Runner, RunnerCommands, RunnerError},
     vcs::{CommitSignature, GitVcs, RepoState, Vcs, VcsError},
 };
 use tdd_llm::{
@@ -98,17 +98,26 @@ fn execute_steps(
     // Baseline test check: if this is an existing project with tests, ensure they pass
     if starting_step == 1 && has_existing_tests(&root)? {
         println!("🔍 Detected existing tests - running baseline check...");
-        let baseline_result = runner.test();
-        if baseline_result.code != 0 {
-            bail!(
-                "Baseline test check failed. Existing tests must pass before autonomous TDD steps can run.\n\
-                 Fix the failing tests manually, then try again.\n\n\
-                 Test output:\n{}\n{}",
-                baseline_result.stdout,
-                baseline_result.stderr
-            );
+        match runner.test() {
+            Ok(_) => println!("✓ Baseline tests pass"),
+            Err(RunnerError::CommandFailed {
+                code,
+                stdout,
+                stderr,
+                ..
+            }) => {
+                bail!(
+                    "Baseline test check failed. Existing tests must pass before autonomous TDD steps can run.\n\
+                     Fix the failing tests manually, then try again.\n\n\
+                     Exit code: {code}\n\
+                     Stdout:\n{stdout}\n\
+                     Stderr:\n{stderr}",
+                );
+            }
+            Err(err) => {
+                return Err(err).context("failed to run baseline cargo test");
+            }
         }
-        println!("✓ Baseline tests pass");
     }
 
     let agents = build_agents(&root, llm);
@@ -120,7 +129,7 @@ fn execute_steps(
         agents,
         last_role,
         starting_step,
-        CommitPolicy::default(),
+        CommitPolicy,
     )?;
 
     let runtime = Runtime::new().context("failed to initialize tokio runtime")?;
@@ -225,7 +234,9 @@ fn has_existing_tests(root: &Path) -> Result<bool> {
         let has_test_files = fs::read_dir(&tests_dir)?
             .filter_map(|entry| entry.ok())
             .any(|entry| {
-                entry.path().extension()
+                entry
+                    .path()
+                    .extension()
                     .map(|ext| ext == "rs")
                     .unwrap_or(false)
             });

@@ -133,7 +133,7 @@ mod tests {
 
     #[test]
     fn formats_commit_with_sections() {
-        let policy = CommitPolicy::default();
+        let policy = CommitPolicy;
         let runner_summary = RunnerOutcomeSummary::new(
             RunOutcome {
                 code: 0,

@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use std::fs;
 use std::path::{Path, PathBuf};
-use tdd_core::config::{LlmProvider, TddConfig};
+use tdd_core::config::TddConfig;
 use tdd_exec::vcs::{CommitSignature, GitVcs, Vcs};
 
 const DEFAULT_KATA_CONTENT: &str = r#"# Kata Description
@@ -103,8 +103,12 @@ pub fn initialize_workspace(config_path: &str) -> Result<InitResult> {
         true
     } else {
         // Validate existing config
-        TddConfig::load_from_file(&config_file)
-            .with_context(|| format!("Failed to validate existing config: {}", config_file.display()))?;
+        TddConfig::load_from_file(&config_file).with_context(|| {
+            format!(
+                "Failed to validate existing config: {}",
+                config_file.display()
+            )
+        })?;
         println!("✓ Using existing {}", config_path);
         false
     };
@@ -127,8 +131,8 @@ pub fn initialize_workspace(config_path: &str) -> Result<InitResult> {
     // Create .tdd directories
     let plan_dir = root.join(&config.workspace.plan_dir);
     let log_dir = root.join(&config.workspace.log_dir);
-    let directories_created = create_directory_if_needed(&plan_dir)?
-        | create_directory_if_needed(&log_dir)?;
+    let directories_created =
+        create_directory_if_needed(&plan_dir)? | create_directory_if_needed(&log_dir)?;
 
     // Create initial commit if this is a new repository
     if git_initialized && (config_created || kata_created || directories_created) {

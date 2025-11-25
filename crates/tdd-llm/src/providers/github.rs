@@ -12,7 +12,6 @@ pub struct GitHubCopilotClient {
     client: reqwest::Client,
     settings: Arc<LlmClientSettings>,
     role_models: HashMap<String, RoleModelConfig>,
-    api_version: String,
 }
 
 impl GitHubCopilotClient {
@@ -45,7 +44,6 @@ impl GitHubCopilotClient {
             role_models: settings.role_models.clone(),
             client,
             settings: Arc::new(settings),
-            api_version: version,
         })
     }
 

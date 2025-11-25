@@ -1,9 +1,9 @@
 use std::{fs, path::Path, sync::Arc};
 
-use tempfile::tempdir;
 use tdd_cli::{executor, status};
 use tdd_core::step::Role;
 use tdd_llm::mock::MockLlmClient;
+use tempfile::tempdir;
 
 #[test]
 fn status_reports_next_role_and_ci_codes() {
@@ -34,7 +34,7 @@ fn status_reports_next_role_and_ci_codes() {
 fn write_kata_files(root: &Path) {
     fs::write(root.join("kata.md"), "Practice string calculator").expect("kata file");
     fs::write(root.join("tdd.yaml"), config_template()).expect("config file");
-  fs::write(root.join(".gitignore"), ".tdd/logs/\n").expect("gitignore");
+    fs::write(root.join(".gitignore"), ".tdd/logs/\n").expect("gitignore");
 }
 
 fn config_template() -> &'static str {

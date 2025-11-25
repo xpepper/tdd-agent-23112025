@@ -120,17 +120,12 @@ impl RoleConfig {
 }
 
 /// LLM provider selection.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum LlmProvider {
+    #[default]
     Openai,
     GithubCopilot,
-}
-
-impl Default for LlmProvider {
-    fn default() -> Self {
-        Self::Openai
-    }
 }
 
 impl LlmProvider {
@@ -262,42 +257,41 @@ mod tests {
     #[test]
     fn loads_valid_config() {
         let mut file = NamedTempFile::new().unwrap();
-        writeln!(
-            file,
-            "{}",
+        file.write_all(
             r#"workspace:
-  kata_file: kata.md
-  plan_dir: .tdd/plan
-  log_dir: .tdd/logs
+    kata_file: kata.md
+    plan_dir: .tdd/plan
+    log_dir: .tdd/logs
 roles:
-  tester:
-    model: gpt-4o-mini
-    temperature: 0.1
-  implementor:
-    model: gpt-4o-mini
-    temperature: 0.2
-  refactorer:
-    model: gpt-4o-mini
-    temperature: 0.15
+    tester:
+        model: gpt-4o-mini
+        temperature: 0.1
+    implementor:
+        model: gpt-4o-mini
+        temperature: 0.2
+    refactorer:
+        model: gpt-4o-mini
+        temperature: 0.15
 llm:
-  provider: openai
-  base_url: https://api.example.com
-  api_key_env: API_KEY
+    provider: openai
+    base_url: https://api.example.com
+    api_key_env: API_KEY
 ci:
-  fmt: ["cargo", "fmt"]
-  check: ["cargo", "clippy", "-D", "warnings"]
-  test: ["cargo", "test"]
+    fmt: ["cargo", "fmt"]
+    check: ["cargo", "clippy", "-D", "warnings"]
+    test: ["cargo", "test"]
 commit_author:
-  name: Example
-  email: example@example.com
+    name: Example
+    email: example@example.com
 "#
+            .as_bytes(),
         )
         .unwrap();
 
         let config = TddConfig::load_from_file(file.path()).unwrap();
         assert_eq!(config.workspace.max_steps, 10);
         assert_eq!(config.roles.tester.model, "gpt-4o-mini");
-        assert_eq!(config.llm.provider, LlmProvider::OpenAi);
+        assert_eq!(config.llm.provider, LlmProvider::Openai);
     }
 
     #[test]
@@ -337,9 +331,7 @@ commit_author:
     #[test]
     fn loads_github_copilot_provider() {
         let mut file = NamedTempFile::new().unwrap();
-        writeln!(
-            file,
-            "{}",
+        file.write_all(
             r#"workspace:
   kata_file: kata.md
   plan_dir: .tdd/plan
@@ -364,11 +356,12 @@ commit_author:
   name: Bot
   email: bot@example.com
 "#
+            .as_bytes(),
         )
         .unwrap();
 
         let config = TddConfig::load_from_file(file.path()).unwrap();
-        assert_eq!(config.llm.provider, LlmProvider::GitHubCopilot);
+        assert_eq!(config.llm.provider, LlmProvider::GithubCopilot);
         assert_eq!(config.llm.api_version, Some("2023-12-01".to_string()));
         assert_eq!(config.llm.base_url, "https://api.githubcopilot.com/v1");
     }
@@ -376,9 +369,7 @@ commit_author:
     #[test]
     fn defaults_to_openai_when_provider_omitted() {
         let mut file = NamedTempFile::new().unwrap();
-        writeln!(
-            file,
-            "{}",
+        file.write_all(
             r#"workspace:
   kata_file: kata.md
   plan_dir: .tdd/plan
@@ -401,10 +392,11 @@ commit_author:
   name: Bot
   email: bot@example.com
 "#
+            .as_bytes(),
         )
         .unwrap();
 
         let config = TddConfig::load_from_file(file.path()).unwrap();
-        assert_eq!(config.llm.provider, LlmProvider::OpenAi);
+        assert_eq!(config.llm.provider, LlmProvider::Openai);
     }
 }

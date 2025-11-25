@@ -56,6 +56,7 @@ impl CommandRunner {
             Err(RunnerError::CommandFailed {
                 program: spec.program.clone(),
                 code: outcome.code,
+                stdout: outcome.stdout.clone(),
                 stderr: outcome.stderr.clone(),
             })
         }
@@ -140,6 +141,7 @@ pub enum RunnerError {
     CommandFailed {
         program: String,
         code: i32,
+        stdout: String,
         stderr: String,
     },
 }

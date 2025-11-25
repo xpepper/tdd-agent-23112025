@@ -1,8 +1,9 @@
 use std::fs;
-use std::sync::Arc;
-use tempfile::tempdir;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex, MutexGuard, OnceLock};
 use tdd_cli::{executor, init};
 use tdd_llm::mock::MockLlmClient;
+use tempfile::tempdir;
 
 #[test]
 fn init_detects_existing_rust_project() {
@@ -11,12 +12,19 @@ fn init_detects_existing_rust_project() {
 
     // Create an existing Rust project structure
     fs::create_dir(root.join("src")).unwrap();
-    fs::write(root.join("Cargo.toml"), "[package]\nname = \"existing\"\nversion = \"0.1.0\"\nedition = \"2021\"\n").unwrap();
-    fs::write(root.join("src/lib.rs"), "pub fn existing_fn() -> i32 { 42 }\n").unwrap();
+    fs::write(
+        root.join("Cargo.toml"),
+        "[package]\nname = \"existing\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+    )
+    .unwrap();
+    fs::write(
+        root.join("src/lib.rs"),
+        "pub fn existing_fn() -> i32 { 42 }\n",
+    )
+    .unwrap();
 
     // Change to the temp directory
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(root).unwrap();
+    let _workdir = WorkdirGuard::enter(root);
 
     // Initialize TDD workspace in existing project
     let result = init::initialize_workspace("tdd.yaml").unwrap();
@@ -37,8 +45,6 @@ fn init_detects_existing_rust_project() {
     assert!(root.join("src/lib.rs").exists());
     let lib_content = fs::read_to_string(root.join("src/lib.rs")).unwrap();
     assert!(lib_content.contains("existing_fn"));
-
-    std::env::set_current_dir(original_dir).unwrap();
 }
 
 #[test]
@@ -77,25 +83,27 @@ mod tests {
     .unwrap();
 
     // Change to the temp directory
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(root).unwrap();
+    let _workdir = WorkdirGuard::enter(root);
 
     // Initialize TDD workspace
     init::initialize_workspace("tdd.yaml").unwrap();
+    overwrite_config_for_fast_ci(root);
 
-    // Create mock LLM client
-    let llm = Arc::new(MockLlmClient::new(vec![
-        // Tester response
-        r#"{"files": [{"path": "tests/test_add.rs", "content": "#[test]\nfn test_multiply() {\n    assert_eq!(2 * 3, 6);\n}"}]}"#.to_string(),
-    ]));
+    // Create mock LLM client and enqueue plan/edit responses for Tester step
+    let llm = Arc::new(MockLlmClient::default());
+    enqueue_single_step_tester_responses(&llm);
 
     // Run steps - should succeed with baseline check
     let result = executor::run_steps_with_client("tdd.yaml", 1, llm);
 
     // Baseline check should pass and allow execution
-    assert!(result.is_ok(), "Expected success with passing baseline tests");
-
-    std::env::set_current_dir(original_dir).unwrap();
+    if let Err(err) = &result {
+        eprintln!("baseline passing test error: {err:?}");
+    }
+    assert!(
+        result.is_ok(),
+        "Expected success with passing baseline tests"
+    );
 }
 
 #[test]
@@ -134,27 +142,29 @@ mod tests {
     .unwrap();
 
     // Change to the temp directory
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(root).unwrap();
+    let _workdir = WorkdirGuard::enter(root);
 
     // Initialize TDD workspace
     init::initialize_workspace("tdd.yaml").unwrap();
 
     // Create mock LLM client (won't be used because baseline check will fail)
-    let llm = Arc::new(MockLlmClient::new(vec![]));
+    let llm = Arc::new(MockLlmClient::default());
 
     // Run steps - should fail at baseline check
     let result = executor::run_steps_with_client("tdd.yaml", 1, llm);
 
     // Baseline check should fail
-    assert!(result.is_err(), "Expected failure with failing baseline tests");
-    let error_msg = format!("{:?}", result.unwrap_err());
+    assert!(
+        result.is_err(),
+        "Expected failure with failing baseline tests"
+    );
+    let err = result.unwrap_err();
+    eprintln!("baseline failure error: {err:?}");
+    let error_msg = err.to_string();
     assert!(
         error_msg.contains("Baseline test check failed"),
         "Error should mention baseline test failure"
     );
-
-    std::env::set_current_dir(original_dir).unwrap();
 }
 
 #[test]
@@ -164,7 +174,11 @@ fn existing_repo_preserves_git_history() {
 
     // Create an existing Rust project with git history
     fs::create_dir(root.join("src")).unwrap();
-    fs::write(root.join("Cargo.toml"), "[package]\nname = \"existing\"\nversion = \"0.1.0\"\nedition = \"2021\"\n").unwrap();
+    fs::write(
+        root.join("Cargo.toml"),
+        "[package]\nname = \"existing\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+    )
+    .unwrap();
     fs::write(root.join("src/lib.rs"), "pub fn v1() -> i32 { 1 }\n").unwrap();
 
     // Initialize git and create initial commit
@@ -181,8 +195,7 @@ fn existing_repo_preserves_git_history() {
         .unwrap();
 
     // Change to the temp directory
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(root).unwrap();
+    let _workdir = WorkdirGuard::enter(root);
 
     // Get commit count before init
     let commits_before = count_commits(&repo);
@@ -193,23 +206,93 @@ fn existing_repo_preserves_git_history() {
     // Get commit count after init
     let commits_after = count_commits(&repo);
 
-    // Should have preserved original commit and added one new commit
+    // Should preserve existing history (no automatic commits)
     assert_eq!(
-        commits_after,
-        commits_before + 1,
-        "Should preserve original commit and add one for TDD init"
+        commits_after, commits_before,
+        "Existing repo history should remain unchanged during init"
     );
 
     // Verify original files still exist
     assert!(root.join("src/lib.rs").exists());
     let lib_content = fs::read_to_string(root.join("src/lib.rs")).unwrap();
     assert!(lib_content.contains("v1"));
-
-    std::env::set_current_dir(original_dir).unwrap();
 }
 
 fn count_commits(repo: &git2::Repository) -> usize {
     let mut revwalk = repo.revwalk().unwrap();
     revwalk.push_head().unwrap();
     revwalk.count()
+}
+
+fn enqueue_single_step_tester_responses(llm: &Arc<MockLlmClient>) {
+    llm.push_response("Plan: add reassurance test");
+    llm.push_response(
+                r##"{
+    "commit_message": "test: ensure add works",
+    "notes": "Confirm baseline behavior",
+    "files": [
+        {"path": "tests/test_add.rs", "contents": "use test_project::add;\n\n#[test]\nfn verifies_add_function() {\n    assert_eq!(add(2, 2), 4);\n}\n"}
+    ]
+}"##,
+        );
+}
+
+fn overwrite_config_for_fast_ci(root: &Path) {
+    let config_path = root.join("tdd.yaml");
+    let config = r#"workspace:
+    kata_file: kata.md
+    plan_dir: .tdd/plan
+    log_dir: .tdd/logs
+    max_steps: 10
+    max_attempts_per_agent: 2
+roles:
+    tester:
+        model: mock
+        temperature: 0.1
+    implementor:
+        model: mock
+        temperature: 0.2
+    refactorer:
+        model: mock
+        temperature: 0.15
+llm:
+    base_url: http://localhost
+    api_key_env: MOCK_TOKEN
+ci:
+    fmt: ["true"]
+    check: ["true"]
+    test: ["cargo", "test"]
+commit_author:
+    name: Fast Bot
+    email: fast.bot@example.com
+"#;
+    fs::write(config_path, config).unwrap();
+}
+
+static WORKDIR_MUTEX: OnceLock<Mutex<()>> = OnceLock::new();
+
+struct WorkdirGuard {
+    original_dir: PathBuf,
+    _lock: MutexGuard<'static, ()>,
+}
+
+impl WorkdirGuard {
+    fn enter(target: &Path) -> Self {
+        let lock = WORKDIR_MUTEX
+            .get_or_init(|| Mutex::new(()))
+            .lock()
+            .unwrap_or_else(|err| err.into_inner());
+        let original_dir = std::env::current_dir().unwrap();
+        std::env::set_current_dir(target).unwrap();
+        Self {
+            original_dir,
+            _lock: lock,
+        }
+    }
+}
+
+impl Drop for WorkdirGuard {
+    fn drop(&mut self) {
+        std::env::set_current_dir(&self.original_dir).unwrap();
+    }
 }

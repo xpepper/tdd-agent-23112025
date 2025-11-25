@@ -164,9 +164,10 @@ commits.
 - [ ] T058 [P] Add additional unit tests for edge cases (timeouts, LLM errors, git failures) across `tdd-exec`, `tdd-llm`, and `tdd-core`
 - [ ] T059 Ensure `.tdd` directory handling is robust (creation, permissions, cleanup) in `tdd-core` and `tdd-cli`
 - [X] T060 [P] Update top-level `README.md` with CLI examples, configuration documentation, and architecture overview for all crates
-- [ ] T061 Run `cargo fmt`, `cargo clippy -D warnings`, and `cargo test --all`
+- [X] T061 Run `cargo fmt`, `cargo clippy -D warnings`, and `cargo test --all`
 	as a pre-release safety gate and resolve any issues before initial
 	release
+  - 2025-11-25: Re-ran fmt/clippy/test after existing repo fixes; all clean.
 
 ---
 

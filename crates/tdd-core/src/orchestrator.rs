@@ -414,8 +414,10 @@ mod tests {
                 },
             },
             llm: crate::config::LlmConfig {
+                provider: crate::config::LlmProvider::Openai,
                 base_url: "http://localhost".into(),
                 api_key_env: "KEY".into(),
+                api_version: None,
             },
             ci: crate::config::CiConfig {
                 fmt: vec!["cargo".into(), "fmt".into()],
@@ -443,7 +445,7 @@ mod tests {
             agents,
             None,
             1,
-            CommitPolicy::default(),
+            CommitPolicy,
         )
         .unwrap();
 
@@ -489,7 +491,7 @@ mod tests {
             agents,
             Some(Role::Tester),
             5,
-            CommitPolicy::default(),
+            CommitPolicy,
         )
         .unwrap();
 
@@ -522,8 +524,10 @@ mod tests {
                 },
             },
             llm: crate::config::LlmConfig {
+                provider: crate::config::LlmProvider::Openai,
                 base_url: "http://localhost".into(),
                 api_key_env: "KEY".into(),
+                api_version: None,
             },
             ci: crate::config::CiConfig {
                 fmt: vec!["cargo".into(), "fmt".into()],
@@ -606,6 +610,7 @@ mod tests {
                     return Err(RunnerError::CommandFailed {
                         program: stage.into(),
                         code: 1,
+                        stdout: String::new(),
                         stderr: "boom".into(),
                     });
                 }

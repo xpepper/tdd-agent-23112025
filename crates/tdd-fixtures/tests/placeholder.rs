@@ -1,4 +1,4 @@
 #[test]
 fn placeholder_fixture_test() {
-    assert!(true);
+    // Placeholder test to ensure test infrastructure works
 }
