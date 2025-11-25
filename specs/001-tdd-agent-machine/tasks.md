@@ -11,10 +11,10 @@
 
 **Purpose**: Establish the Rust workspace skeleton, documentation, and repo-level tooling expected by the plan.
 
-- [ ] T001 Ensure `Cargo.toml` declares the multi-crate workspace (`crates/tdd-cli`, `tdd-core`, `tdd-agents`, `tdd-exec`, `tdd-llm`, `tdd-fixtures`) per plan.md.
-- [ ] T002 [P] Scaffold crate directories and placeholder `lib.rs` files under `crates/` so each crate builds pre-feature.
-- [ ] T003 [P] Configure repo-level tooling files (`.gitignore`, `rust-toolchain.toml`, `rustfmt.toml`, `Clippy.toml`) to enforce consistent linting/formatting.
-- [ ] T004 [P] Add base developer artifacts (`README.md`, `kata.md`, starter `tdd.yaml`) mirroring quickstart.md so contributors can run the CLI.
+- [X] T001 Ensure `Cargo.toml` declares the multi-crate workspace (`crates/tdd-cli`, `tdd-core`, `tdd-agents`, `tdd-exec`, `tdd-llm`, `tdd-fixtures`) per plan.md.
+- [X] T002 [P] Scaffold crate directories and placeholder `lib.rs` files under `crates/` so each crate builds pre-feature.
+- [X] T003 [P] Configure repo-level tooling files (`.gitignore`, `rust-toolchain.toml`, `rustfmt.toml`, `Clippy.toml`) to enforce consistent linting/formatting.
+- [X] T004 [P] Add base developer artifacts (`README.md`, `kata.md`, starter `tdd.yaml`) mirroring quickstart.md so contributors can run the CLI.
 
 ---
 
@@ -22,11 +22,11 @@
 
 **Purpose**: Core infrastructure that every user story depends on; no user story work may start until these complete.
 
-- [ ] T005 Implement `TddConfig` parsing/validation in `crates/tdd-core/src/config.rs` covering workspace, roles, LLM, CI, and commit author fields from data-model.md.
-- [ ] T006 [P] Implement the process runner abstraction in `crates/tdd-exec/src/runner.rs` to execute configurable `fmt/check/test` commands.
-- [ ] T007 [P] Implement git repository helpers (`RepoState`, `GitVcs`) in `crates/tdd-exec/src/vcs.rs` for init/state/stage/commit flows.
-- [ ] T008 [P] Implement filesystem snapshot utilities in `crates/tdd-exec/src/fs.rs` so StepContext can enumerate tracked files.
-- [ ] T009 [P] Define `LlmClient`, `Message`, and settings structs in `crates/tdd-llm/src/client.rs` and `crates/tdd-llm/src/config.rs`, enabling pluggable providers per research.md.
+- [X] T005 Implement `TddConfig` parsing/validation in `crates/tdd-core/src/config.rs` covering workspace, roles, LLM, CI, and commit author fields from data-model.md.
+- [X] T006 [P] Implement the process runner abstraction in `crates/tdd-exec/src/runner.rs` to execute configurable `fmt/check/test` commands.
+- [X] T007 [P] Implement git repository helpers (`RepoState`, `GitVcs`) in `crates/tdd-exec/src/vcs.rs` for init/state/stage/commit flows.
+- [X] T008 [P] Implement filesystem snapshot utilities in `crates/tdd-exec/src/fs.rs` so StepContext can enumerate tracked files.
+- [X] T009 [P] Define `LlmClient`, `Message`, and settings structs in `crates/tdd-llm/src/client.rs` and `crates/tdd-llm/src/config.rs`, enabling pluggable providers per research.md.
 
 **Checkpoint**: Configuration, CI runners, git adapters, and LLM abstractions are in place; user stories can now start.
 
@@ -40,15 +40,15 @@
 
 ### Tests for User Story 2
 
-- [ ] T010 [P] [US2] Add `crates/tdd-cli/tests/init_tests.rs` covering empty-dir init success and idempotent re-runs per `/init` contract.
+- [X] T010 [P] [US2] Add `crates/tdd-cli/tests/init_tests.rs` covering empty-dir init success and idempotent re-runs per `/init` contract.
 
 ### Implementation for User Story 2
 
-- [ ] T011 [P] [US2] Wire CLI argument parsing/subcommands (init, run, step, status) in `crates/tdd-cli/src/main.rs` using `clap`.
-- [ ] T012 [US2] Implement workspace detection and git initialization logic in `crates/tdd-cli/src/init.rs`, reusing `GitVcs` for existing repos.
-- [ ] T013 [US2] Create `.tdd/plan`, `.tdd/logs`, default `kata.md`, and `tdd.yaml` scaffolds inside `crates/tdd-cli/src/init.rs`.
-- [ ] T014 [US2] Align `/init` request/response examples inside `specs/001-tdd-agent-machine/contracts/openapi.yaml` with actual CLI behavior.
-- [ ] T015 [US2] Update `specs/001-tdd-agent-machine/quickstart.md` to document the init workflow and prerequisites (toolchain, git, tokens).
+- [X] T011 [P] [US2] Wire CLI argument parsing/subcommands (init, run, step, status) in `crates/tdd-cli/src/main.rs` using `clap`.
+- [X] T012 [US2] Implement workspace detection and git initialization logic in `crates/tdd-cli/src/init.rs`, reusing `GitVcs` for existing repos.
+- [X] T013 [US2] Create `.tdd/plan`, `.tdd/logs`, default `kata.md`, and `tdd.yaml` scaffolds inside `crates/tdd-cli/src/init.rs`.
+- [X] T014 [US2] Align `/init` request/response examples inside `specs/001-tdd-agent-machine/contracts/openapi.yaml` with actual CLI behavior.
+- [X] T015 [US2] Update `specs/001-tdd-agent-machine/quickstart.md` to document the init workflow and prerequisites (toolchain, git, tokens).
 
 **Checkpoint**: CLI init command & docs verified; workspace can be created safely.
 
@@ -62,18 +62,18 @@
 
 ### Tests for User Story 1
 
-- [ ] T016 [P] [US1] Create integration coverage in `crates/tdd-cli/tests/run_loop_tests.rs` to assert role order, commit count, and CI success.
-- [ ] T017 [P] [US1] Add orchestrator unit tests in `crates/tdd-core/src/orchestrator.rs` validating role rotation, retries, and empty-repo rules.
+- [X] T016 [P] [US1] Create integration coverage in `crates/tdd-cli/tests/run_loop_tests.rs` to assert role order, commit count, and CI success.
+- [X] T017 [P] [US1] Add orchestrator unit tests in `crates/tdd-core/src/orchestrator.rs` validating role rotation, retries, and empty-repo rules.
 
 ### Implementation for User Story 1
 
-- [ ] T018 [US1] Implement `Role`, `StepContext`, and builder helpers in `crates/tdd-core/src/step.rs` using data-model.md definitions.
-- [ ] T019 [US1] Persist plans/logs via `PlanWriter` & `StepLogger` in `crates/tdd-core/src/orchestrator.rs` and `crates/tdd-core/src/logging.rs`.
-- [ ] T020 [US1] Implement `DefaultOrchestrator::next` to call agents, run CI (fmt/check/test), enforce attempt limits, and commit via `GitVcs`.
-- [ ] T021 [US1] Implement `CommitPolicy` formatting in `crates/tdd-core/src/commit_policy.rs` aligning with FR-013.
-- [ ] T022 [US1] Build `TesterAgent`, `ImplementorAgent`, `RefactorerAgent`, and edit-plan helpers across `crates/tdd-agents/src/*.rs`, enforcing per-role constraints.
-- [ ] T023 [US1] Integrate LLM clients into CLI execution in `crates/tdd-cli/src/executor.rs`, loading role models from config and emitting StepResult metadata.
-- [ ] T024 [US1] Provide mock/fake LLM fixtures in `crates/tdd-fixtures/` for deterministic CLI tests.
+- [X] T018 [US1] Implement `Role`, `StepContext`, and builder helpers in `crates/tdd-core/src/step.rs` using data-model.md definitions.
+- [X] T019 [US1] Persist plans/logs via `PlanWriter` & `StepLogger` in `crates/tdd-core/src/orchestrator.rs` and `crates/tdd-core/src/logging.rs`.
+- [X] T020 [US1] Implement `DefaultOrchestrator::next` to call agents, run CI (fmt/check/test), enforce attempt limits, and commit via `GitVcs`.
+- [X] T021 [US1] Implement `CommitPolicy` formatting in `crates/tdd-core/src/commit_policy.rs` aligning with FR-013.
+- [X] T022 [US1] Build `TesterAgent`, `ImplementorAgent`, `RefactorerAgent`, and edit-plan helpers across `crates/tdd-agents/src/*.rs`, enforcing per-role constraints.
+- [X] T023 [US1] Integrate LLM clients into CLI execution in `crates/tdd-cli/src/executor.rs`, loading role models from config and emitting StepResult metadata.
+- [X] T024 [US1] Provide mock/fake LLM fixtures in `crates/tdd-fixtures/` for deterministic CLI tests.
 
 **Checkpoint**: Multi-step orchestration works end-to-end with mocked LLMs and commits are produced automatically.
 
@@ -87,14 +87,14 @@
 
 ### Tests for User Story 3
 
-- [ ] T025 [P] [US3] Add `crates/tdd-cli/tests/status_tests.rs` verifying CLI status output and log retrieval for both passing and failing steps.
+- [X] T025 [P] [US3] Add `crates/tdd-cli/tests/status_tests.rs` verifying CLI status output and log retrieval for both passing and failing steps.
 
 ### Implementation for User Story 3
 
-- [ ] T026 [US3] Extend `StepLogEntry` in `crates/tdd-core/src/logging.rs` with provider + runner metadata per data-model.md.
-- [ ] T027 [US3] Implement log reader helpers in `crates/tdd-core/src/logging.rs` to fetch latest entries for status/reporting.
-- [ ] T028 [US3] Add `status` command plumbing in `crates/tdd-cli/src/main.rs` (or `status.rs`) that prints next role/step plus CI summaries, mapping to `/status`.
-- [ ] T029 [US3] Document diagnostics usage in `specs/001-tdd-agent-machine/quickstart.md` and adjust `/status` + `/logs/{step}` sections in contracts/openapi.yaml.
+- [X] T026 [US3] Extend `StepLogEntry` in `crates/tdd-core/src/logging.rs` with provider + runner metadata per data-model.md.
+- [X] T027 [US3] Implement log reader helpers in `crates/tdd-core/src/logging.rs` to fetch latest entries for status/reporting.
+- [X] T028 [US3] Add `status` command plumbing in `crates/tdd-cli/src/main.rs` (or `status.rs`) that prints next role/step plus CI summaries, mapping to `/status`.
+- [X] T029 [US3] Document diagnostics usage in `specs/001-tdd-agent-machine/quickstart.md` and adjust `/status` + `/logs/{step}` sections in contracts/openapi.yaml.
 
 **Checkpoint**: Users can audit recent steps and see what will run next without inspecting code.
 
@@ -108,16 +108,16 @@
 
 ### Tests for User Story 4
 
-- [ ] T030 [P] [US4] Expand `crates/tdd-core/tests/config_tests.rs` to cover provider enum parsing, default API versions, and invalid command arrays.
-- [ ] T031 [P] [US4] Add integration coverage in `crates/tdd-cli/tests/run_loop_tests.rs` asserting that overriding CI commands in `tdd.yaml` changes which binaries runner executes.
+- [X] T030 [P] [US4] Expand `crates/tdd-core/tests/config_tests.rs` to cover provider enum parsing, default API versions, and invalid command arrays.
+- [X] T031 [P] [US4] Add integration coverage in `crates/tdd-cli/tests/run_loop_tests.rs` asserting that overriding CI commands in `tdd.yaml` changes which binaries runner executes.
 
 ### Implementation for User Story 4
 
-- [ ] T032 [US4] Extend `TddConfig` in `crates/tdd-core/src/config.rs` with `llm.provider`, `api_version`, and role-specific settings.
-- [ ] T033 [US4] Implement provider factory plus GitHub Copilot client in `crates/tdd-llm/src/providers/{openai,github}.rs`, applying research.md header/token rules.
-- [ ] T034 [US4] Update CLI executor in `crates/tdd-cli/src/executor.rs` to instantiate the correct LLM client, read env vars, and pass provider metadata into logs.
-- [ ] T035 [US4] Update template config emitted by `crates/tdd-cli/src/init.rs` (and `tdd.yaml`) with annotated Copilot examples per quickstart.md.
-- [ ] T036 [US4] Ensure `/init` + `/steps` schemas in `specs/001-tdd-agent-machine/contracts/openapi.yaml` describe the new configuration knobs.
+- [X] T032 [US4] Extend `TddConfig` in `crates/tdd-core/src/config.rs` with `llm.provider`, `api_version`, and role-specific settings.
+- [X] T033 [US4] Implement provider factory plus GitHub Copilot client in `crates/tdd-llm/src/providers/{openai,github}.rs`, applying research.md header/token rules.
+- [X] T034 [US4] Update CLI executor in `crates/tdd-cli/src/executor.rs` to instantiate the correct LLM client, read env vars, and pass provider metadata into logs.
+- [X] T035 [US4] Update template config emitted by `crates/tdd-cli/src/init.rs` (and `tdd.yaml`) with annotated Copilot examples per quickstart.md.
+- [X] T036 [US4] Ensure `/init` + `/steps` schemas in `specs/001-tdd-agent-machine/contracts/openapi.yaml` describe the new configuration knobs.
 
 **Checkpoint**: Teams can swap providers/commands confidently; logs show which provider handled each step.
 
@@ -131,15 +131,15 @@
 
 ### Tests for User Story 5
 
-- [ ] T037 [P] [US5] Create `crates/tdd-cli/tests/existing_repo_tests.rs` case ensuring init preserves existing files/history and baseline tests pass.
-- [ ] T038 [P] [US5] Add failing-baseline scenario in the same test suite verifying the CLI blocks execution and surfaces stdout/stderr clearly.
+- [X] T037 [P] [US5] Create `crates/tdd-cli/tests/existing_repo_tests.rs` case ensuring init preserves existing files/history and baseline tests pass.
+- [X] T038 [P] [US5] Add failing-baseline scenario in the same test suite verifying the CLI blocks execution and surfaces stdout/stderr clearly.
 
 ### Implementation for User Story 5
 
-- [ ] T039 [US5] Enhance `crates/tdd-cli/src/init.rs` to detect existing `Cargo.toml`/`src` trees and skip destructive writes while still creating `.tdd/*` metadata.
-- [ ] T040 [US5] Implement baseline test guard in `crates/tdd-cli/src/executor.rs` that runs configured test commands before orchestrating agents.
-- [ ] T041 [US5] Ensure `crates/tdd-exec/src/vcs.rs` leaves existing history untouched (stage only new artifacts, commit with configured author).
-- [ ] T042 [US5] Document existing-repo expectations and troubleshooting inside `specs/001-tdd-agent-machine/quickstart.md` and README.
+- [X] T039 [US5] Enhance `crates/tdd-cli/src/init.rs` to detect existing `Cargo.toml`/`src` trees and skip destructive writes while still creating `.tdd/*` metadata.
+- [X] T040 [US5] Implement baseline test guard in `crates/tdd-cli/src/executor.rs` that runs configured test commands before orchestrating agents.
+- [X] T041 [US5] Ensure `crates/tdd-exec/src/vcs.rs` leaves existing history untouched (stage only new artifacts, commit with configured author).
+- [X] T042 [US5] Document existing-repo expectations and troubleshooting inside `specs/001-tdd-agent-machine/quickstart.md` and README.
 
 **Checkpoint**: Existing projects can adopt the tool safely with clear failure messaging.
 
