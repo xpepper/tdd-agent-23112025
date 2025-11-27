@@ -22,3 +22,5 @@ Thumbs.db
 .env
 .env.*
 .tdd/logs/
+.tdd/plan/
+.tdd/state/
