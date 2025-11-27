@@ -167,7 +167,7 @@ pub(crate) fn resolve_root(config_path: &Path) -> Result<PathBuf> {
     }
 }
 
-fn ensure_workspace_dirs(root: &Path, config: &TddConfig) -> Result<()> {
+pub(crate) fn ensure_workspace_dirs(root: &Path, config: &TddConfig) -> Result<()> {
     for dir in [&config.workspace.plan_dir, &config.workspace.log_dir] {
         let full_path = root.join(dir);
         fs::create_dir_all(&full_path)

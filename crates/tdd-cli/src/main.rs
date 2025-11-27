@@ -24,6 +24,8 @@ enum Commands {
     Status(StatusArgs),
     /// Diagnose environment issues (tooling, config files, git status)
     Doctor,
+    /// Run (or re-run) the provisioning/bootstrap script defined in tdd.yaml
+    Provision(ProvisionArgs),
 }
 
 #[derive(Args, Debug, Default)]
@@ -57,6 +59,16 @@ struct StatusArgs {
     config: String,
 }
 
+#[derive(Args, Debug, Default)]
+struct ProvisionArgs {
+    /// Optional path to configuration file
+    #[arg(long, default_value = "tdd.yaml")]
+    config: String,
+    /// Force running even if skip markers are present
+    #[arg(long, default_value_t = false)]
+    force: bool,
+}
+
 fn main() {
     if let Err(err) = run_cli() {
         eprintln!("Error: {err:?}");
@@ -73,6 +85,7 @@ fn run_cli() -> Result<()> {
         Some(Commands::Step(args)) => handle_step(&args),
         Some(Commands::Status(args)) => handle_status(&args),
         Some(Commands::Doctor) => handle_doctor(),
+        Some(Commands::Provision(args)) => handle_provision(&args),
         None => {
             Cli::command().print_help()?;
             Ok(())
@@ -118,6 +131,25 @@ fn handle_status(args: &StatusArgs) -> Result<()> {
 
 fn handle_doctor() -> Result<()> {
     println!("doctor not implemented yet");
+    Ok(())
+}
+
+fn handle_provision(args: &ProvisionArgs) -> Result<()> {
+    let summary = init::run_bootstrap(&args.config, args.force)?;
+    if !summary.configured {
+        println!("No bootstrap block configured in {}", args.config);
+        return Ok(());
+    }
+
+    if summary.skipped {
+        println!("Bootstrap skipped (use --force to override skip markers)");
+    } else {
+        if let Some(log) = &summary.log_file {
+            println!("Bootstrap completed successfully. Log: {}", log.display());
+        } else {
+            println!("Bootstrap completed successfully.");
+        }
+    }
     Ok(())
 }
 

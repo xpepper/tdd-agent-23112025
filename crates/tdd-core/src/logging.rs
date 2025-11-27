@@ -4,12 +4,14 @@ use std::ffi::OsStr;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::commit_policy::RunnerOutcomeSummary;
 use crate::step::Role;
+use tdd_exec::bootstrap::BootstrapResult;
 
 /// Snapshot of a completed step persisted to `.tdd/logs`.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -86,6 +88,109 @@ impl From<&tdd_exec::runner::RunOutcome> for CommandLog {
             stderr: outcome.stderr.clone(),
         }
     }
+}
+
+/// Telemetry emitted after running a bootstrap/provisioning command.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct BootstrapLogEntry {
+    pub command: Vec<String>,
+    pub working_dir: String,
+    pub skipped: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub skip_reason: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exit_code: Option<i32>,
+    pub stdout: String,
+    pub stderr: String,
+    pub started_at_ms: u128,
+    pub duration_ms: u128,
+}
+
+impl BootstrapLogEntry {
+    /// Convert an execution result into a persistable log entry.
+    pub fn from_result(result: &BootstrapResult) -> Self {
+        Self {
+            command: result.command.clone(),
+            working_dir: result.working_dir.to_string_lossy().to_string(),
+            skipped: result.skipped,
+            skip_reason: result.skip_reason.clone(),
+            exit_code: result.exit_code,
+            stdout: result.stdout.clone(),
+            stderr: result.stderr.clone(),
+            started_at_ms: system_time_to_millis(result.started_at),
+            duration_ms: result.duration.as_millis(),
+        }
+    }
+}
+
+/// Persists bootstrap telemetry under `.tdd/logs` and `.tdd/state`.
+#[derive(Debug, Clone)]
+pub struct BootstrapLogger {
+    root: PathBuf,
+    log_dir: PathBuf,
+    state_file: PathBuf,
+}
+
+impl BootstrapLogger {
+    pub fn new(
+        root: impl AsRef<Path>,
+        log_dir: impl Into<PathBuf>,
+        state_file: impl Into<PathBuf>,
+    ) -> Self {
+        Self {
+            root: root.as_ref().to_path_buf(),
+            log_dir: log_dir.into(),
+            state_file: state_file.into(),
+        }
+    }
+
+    pub fn persist(&self, entry: &BootstrapLogEntry) -> Result<BootstrapLogPaths, LogError> {
+        let log_file = self.write_log(entry)?;
+        let state_file = self.write_state(entry)?;
+        Ok(BootstrapLogPaths {
+            log_file,
+            state_file,
+        })
+    }
+
+    fn write_log(&self, entry: &BootstrapLogEntry) -> Result<PathBuf, LogError> {
+        let dir = self.root.join(&self.log_dir);
+        fs::create_dir_all(&dir).map_err(|source| LogError::CreateDir {
+            path: dir.clone(),
+            source,
+        })?;
+        let file_name = format!("bootstrap-{}.json", entry.started_at_ms);
+        let path = dir.join(file_name);
+        let json = serde_json::to_string_pretty(entry).map_err(LogError::Serialize)?;
+        fs::write(&path, json).map_err(|source| LogError::WriteFile {
+            path: path.clone(),
+            source,
+        })?;
+        Ok(path)
+    }
+
+    fn write_state(&self, entry: &BootstrapLogEntry) -> Result<PathBuf, LogError> {
+        let path = self.root.join(&self.state_file);
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent).map_err(|source| LogError::CreateDir {
+                path: parent.to_path_buf(),
+                source,
+            })?;
+        }
+        let json = serde_json::to_string_pretty(entry).map_err(LogError::Serialize)?;
+        fs::write(&path, json).map_err(|source| LogError::WriteFile {
+            path: path.clone(),
+            source,
+        })?;
+        Ok(path)
+    }
+}
+
+/// Paths returned after persisting bootstrap logs.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BootstrapLogPaths {
+    pub log_file: PathBuf,
+    pub state_file: PathBuf,
 }
 
 /// Utility that persists [`StepLogEntry`] documents.
@@ -223,6 +328,12 @@ pub enum LogError {
     },
 }
 
+fn system_time_to_millis(time: SystemTime) -> u128 {
+    time.duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis())
+        .unwrap_or(0)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -303,5 +414,31 @@ mod tests {
         let latest = latest_log_entry(temp.path(), ".tdd/logs").unwrap().unwrap();
         assert_eq!(latest.step_index, 3);
         assert_eq!(latest.role, Role::Refactorer);
+    }
+
+    #[test]
+    fn bootstrap_logger_writes_log_and_state() {
+        let temp = tempdir().unwrap();
+        let logger = BootstrapLogger::new(temp.path(), ".tdd/logs", ".tdd/state/bootstrap.json");
+        let entry = BootstrapLogEntry {
+            command: vec!["sh".into(), "script.sh".into()],
+            working_dir: ".".into(),
+            skipped: false,
+            skip_reason: None,
+            exit_code: Some(0),
+            stdout: "ok".into(),
+            stderr: String::new(),
+            started_at_ms: 123,
+            duration_ms: 5,
+        };
+
+        let paths = logger.persist(&entry).unwrap();
+        assert!(paths.log_file.exists());
+        assert!(paths.state_file.exists());
+
+        let log_contents = fs::read_to_string(paths.log_file).unwrap();
+        assert!(log_contents.contains("script.sh"));
+        let state_contents = fs::read_to_string(paths.state_file).unwrap();
+        assert!(state_contents.contains("duration_ms"));
     }
 }

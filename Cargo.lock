@@ -1293,6 +1293,7 @@ dependencies = [
  "anyhow",
  "clap",
  "git2",
+ "serde_yaml",
  "tdd-agents",
  "tdd-core",
  "tdd-exec",

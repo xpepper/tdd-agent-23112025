@@ -34,6 +34,7 @@ impl TddConfig {
 
     fn validate(&mut self) -> Result<(), ConfigError> {
         self.workspace.normalize();
+        self.workspace.validate()?;
         self.ci.ensure_all_commands_present()?;
         self.roles.validate()?;
         self.llm.validate()?;
@@ -51,6 +52,8 @@ pub struct WorkspaceConfig {
     pub max_steps: u32,
     #[serde(default = "WorkspaceConfig::default_attempts")]
     pub max_attempts_per_agent: u32,
+    #[serde(default)]
+    pub bootstrap: Option<BootstrapConfig>,
 }
 
 impl WorkspaceConfig {
@@ -69,6 +72,34 @@ impl WorkspaceConfig {
         if self.max_attempts_per_agent == 0 {
             self.max_attempts_per_agent = Self::default_attempts();
         }
+    }
+
+    fn validate(&self) -> Result<(), ConfigError> {
+        if let Some(bootstrap) = &self.bootstrap {
+            bootstrap.validate()?;
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct BootstrapConfig {
+    pub command: Vec<String>,
+    #[serde(default)]
+    pub working_dir: Option<PathBuf>,
+    #[serde(default)]
+    pub skip_files: Vec<PathBuf>,
+}
+
+impl BootstrapConfig {
+    fn validate(&self) -> Result<(), ConfigError> {
+        if self.command.is_empty() {
+            return Err(ConfigError::InvalidField {
+                field: "workspace.bootstrap.command".into(),
+                reason: "bootstrap command must contain at least one entry".into(),
+            });
+        }
+        Ok(())
     }
 }
 
@@ -398,5 +429,46 @@ commit_author:
 
         let config = TddConfig::load_from_file(file.path()).unwrap();
         assert_eq!(config.llm.provider, LlmProvider::Openai);
+    }
+
+    #[test]
+    fn rejects_empty_bootstrap_command_list() {
+        let mut file = NamedTempFile::new().unwrap();
+        file.write_all(
+            r#"workspace:
+    kata_file: kata.md
+    plan_dir: .tdd/plan
+    log_dir: .tdd/logs
+    bootstrap:
+        command: []
+roles:
+    tester:
+        model: gpt-4o
+    implementor:
+        model: gpt-4o
+    refactorer:
+        model: gpt-4o
+llm:
+    base_url: https://api.openai.com/v1
+    api_key_env: OPENAI_API_KEY
+ci:
+    fmt: ["cargo", "fmt"]
+    check: ["cargo", "clippy"]
+    test: ["cargo", "test"]
+commit_author:
+    name: Bot
+    email: bot@example.com
+"#
+            .as_bytes(),
+        )
+        .unwrap();
+
+        let err = TddConfig::load_from_file(file.path()).unwrap_err();
+        match err {
+            ConfigError::InvalidField { field, .. } => {
+                assert_eq!(field, "workspace.bootstrap.command");
+            }
+            other => panic!("unexpected error: {other}"),
+        }
     }
 }
