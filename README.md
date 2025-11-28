@@ -42,13 +42,25 @@ cargo run -p tdd-cli -- init
 # 3. Edit kata.md to describe your kata
 vim kata.md
 
-# 4. Set your API key
+# 4. (Optional) Wire a provisioning script
+#   - Uncomment workspace.bootstrap in tdd.yaml
+#   - Point it at ./scripts/bootstrap.sh (or similar)
+#   - Run `cargo run -p tdd-cli -- provision` to verify it succeeds
+
+#   Example bootstrap block
+#   bootstrap:
+#     command: ["/bin/sh", "./scripts/bootstrap.sh"]
+#     working_dir: "."
+#     skip_files:
+#       - ".tdd/state/bootstrap.skip"
+
+# 5. Set your API key
 export OPENAI_API_KEY="your-key-here"
 
-# 5. Run autonomous TDD steps
+# 6. Run autonomous TDD steps
 cargo run -p tdd-cli -- run --steps 3
 
-# 6. Check status
+# 7. Check status
 cargo run -p tdd-cli -- status
 ```
 
@@ -61,9 +73,19 @@ cd your-rust-project
 # 2. Initialize TDD workspace (non-destructive)
 cargo run -p tdd-cli -- init
 
+# 2b. (Optional) Configure workspace.bootstrap and run provisioning
+cargo run -p tdd-cli -- provision --force
+
 # 3. Configure and run
 export OPENAI_API_KEY="your-key-here"
 cargo run -p tdd-cli -- run --steps 1
+
+If provisioning only needs to run once (e.g., heavy tool installs), create a
+skip marker so later `init` runs complete instantly:
+
+```bash
+touch .tdd/state/bootstrap.skip
+```
 ```
 
 ## Architecture
@@ -122,9 +144,10 @@ cargo run -p tdd-cli -- init [--config tdd.yaml]
 ```
 
 **Behavior:**
-- Creates `tdd.yaml`, `kata.md`, `.tdd/plan/`, `.tdd/logs/`
+- Creates `tdd.yaml`, `kata.md`, `.tdd/plan/`, `.tdd/logs/`, `.tdd/state/`
 - Initializes git repository if needed
 - Detects existing Rust projects and preserves all files
+- Executes the configured `workspace.bootstrap` command once and records its telemetry
 - Validates existing configurations
 
 ### `run`
@@ -154,13 +177,41 @@ cargo run -p tdd-cli -- step [--config tdd.yaml]
 Display current progress and diagnostics.
 
 ```bash
-cargo run -p tdd-cli -- status [--config tdd.yaml]
-```
+`cargo run -p tdd-cli -- status [--config tdd.yaml]`
 
 **Output:**
 - Next role to execute
 - Current step number
 - Last commit summary
+- Bootstrap summary (skipped? log file? state path?)
+- CI command results (fmt/check/test exit codes)
+
+### `provision`
+
+Run (or re-run) the provisioning/bootstrap script without touching any other artifacts.
+
+```bash
+cargo run -p tdd-cli -- provision [--config tdd.yaml] [--force]
+```
+
+**Behavior:**
+- Loads `workspace.bootstrap` from `tdd.yaml`
+- Skips execution when any `skip_files` markers (for example `.tdd/state/bootstrap.skip`) exist unless `--force` is provided
+- Streams the same telemetry as `init`, writing `.tdd/logs/bootstrap-*.json` and `.tdd/state/bootstrap.json`
+
+### `doctor`
+
+Diagnose environment prerequisites before running the automation.
+
+```bash
+cargo run -p tdd-cli -- doctor [--config tdd.yaml]
+```
+
+**Behavior:**
+- Verifies git cleanliness and required binaries (`cargo`, configured CI commands)
+- Ensures LLM API tokens referenced by `api_key_env` are loaded
+- Surfaces bootstrap health (latest state file, skip markers) so you know whether provisioning ran
+- *Note*: The current implementation still prints a placeholder message—full diagnostics arrive in a later milestone.
 - CI command results (fmt/check/test exit codes)
 
 ## Configuration
@@ -174,6 +225,12 @@ workspace:
   log_dir: ".tdd/logs"
   max_steps: 10
   max_attempts_per_agent: 2
+  # Optional provisioning hook (runs before first tester step)
+  # bootstrap:
+  #   command: ["/bin/sh", "./scripts/bootstrap.sh"]
+  #   working_dir: "."
+  #   skip_files:
+  #     - ".tdd/state/bootstrap.skip"
 
 roles:
   tester:
@@ -267,6 +324,12 @@ Machine-readable JSON capturing:
 - `files_changed`: List of modified files
 - `commit_id`: Resulting git SHA
 - `runner`: CI command results (exit codes, stdout, stderr)
+
+### Bootstrap telemetry
+
+- `.tdd/logs/bootstrap-*.json` captures each provisioning run (command, working directory, stdout/stderr, skip reason).
+- `.tdd/state/bootstrap.json` stores the latest summary so `status`/`doctor` can report whether provisioning succeeded.
+- Touch `.tdd/state/bootstrap.skip` (or any configured skip marker) to instruct the CLI to skip bootstrap unless `--force` is provided.
 
 ## Development Workflow
 

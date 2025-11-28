@@ -33,7 +33,43 @@ Export your token before running:
 export GITHUB_COPILOT_TOKEN="ghp_your_token_here"
 ```
 
-## 4. Run agents
+## 4. Provision the environment (optional)
+If your kata requires installing toolchains, seeding datasets, or running any
+other provisioning scripts, add a `workspace.bootstrap` block:
+
+```yaml
+workspace:
+  kata_file: "kata.md"
+  plan_dir: ".tdd/plan"
+  log_dir: ".tdd/logs"
+  max_steps: 10
+  max_attempts_per_agent: 2
+  bootstrap:
+    command: ["/bin/sh", "./scripts/bootstrap.sh"]
+    working_dir: "."
+    skip_files:
+      - ".tdd/state/bootstrap.skip"
+```
+
+- `command`: program + args executed before the first tester run.
+- `skip_files`: touching any of these files (for example
+  `.tdd/state/bootstrap.skip`) tells the CLI to skip provisioning unless you
+  pass `--force`.
+- Telemetry is written to `.tdd/logs/bootstrap-*.json` and consolidated state
+  lands in `.tdd/state/bootstrap.json`.
+
+Run the bootstrap script manually or when re-provisioning:
+
+```bash
+cargo run -p tdd-cli -- provision
+# or force a rerun even if skip markers exist
+cargo run -p tdd-cli -- provision --force
+```
+
+`tdd-cli init` automatically executes the bootstrap command once the block is
+configured.
+
+## 5. Run agents
 - Execute three full cycles: `cargo run -p tdd-cli -- run --steps 3`
 - Execute a single cycle: `cargo run -p tdd-cli -- step`
 - Limit steps with guard rails: `cargo run -p tdd-cli -- run --steps 12 --max-attempts 1`
@@ -43,16 +79,16 @@ Every successful role writes:
 - JSON logs (with provider name) under `.tdd/logs/step-XYZ-role.json`
 - Conventional commits in git history
 
-## 5. Inspect status & doctor
-- `cargo run -p tdd-cli -- status` → shows next role, latest step log summary, and CI exit codes.
-- `cargo run -p tdd-cli -- doctor` → verifies git cleanliness, CI binaries, and that the configured token/env vars are available.
+## 6. Inspect status & doctor
+- `cargo run -p tdd-cli -- status` → shows next role, latest step log summary, bootstrap outcome, and CI exit codes.
+- `cargo run -p tdd-cli -- doctor` → (coming soon) verifies git cleanliness, CI binaries, required env vars, and that `.tdd/state/bootstrap.json` reflects a healthy provisioning run (or highlights missing skip markers). Until diagnostics ship, the command prints a placeholder message.
 
-## 6. When something fails
+## 7. When something fails
 1. Read `.tdd/logs/step-XYZ-role.json` for the role that failed.
 2. Check `runner.check.stderr` or `runner.test.stderr` for compiler/test issues.
 3. Fix the underlying issue manually if needed, rerun `cargo fmt && cargo test --all`, then call `tdd-cli run --steps 1` to resume.
 
-## 7. Developing with Copilot provider
+## 8. Developing with Copilot provider
 - Copilot requests reuse the same prompts but add the `X-GitHub-Api-Version` header.
 - Rotate your GH token regularly; the CLI never stores it on disk.
 - Mix providers by editing `tdd.yaml` to switch back to OpenAI when necessary.

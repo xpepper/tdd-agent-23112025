@@ -128,6 +128,8 @@ components:
           type: boolean
         message:
           type: string
+        bootstrap:
+          $ref: '#/components/schemas/BootstrapSummary'
     RunStepsRequest:
       type: object
       properties:
@@ -279,7 +281,45 @@ components:
           type: integer
         maxAttemptsPerAgent:
           type: integer
+        bootstrap:
+          $ref: '#/components/schemas/BootstrapConfig'
       required: [kataFile, planDir, logDir]
+    BootstrapConfig:
+      type: object
+      description: Configuration for optional provisioning/bootstrap scripts.
+      properties:
+        command:
+          type: array
+          description: Shell command (program + args) executed before the first tester step.
+          items:
+            type: string
+        workingDir:
+          type: string
+          description: Directory from which the bootstrap command runs (defaults to repo root).
+        skipFiles:
+          type: array
+          description: Marker files that, when present, cause provisioning to be skipped unless --force is used.
+          items:
+            type: string
+      required: [command]
+    BootstrapSummary:
+      type: object
+      description: Result metadata emitted by the bootstrap runner under `.tdd/logs` and `.tdd/state`.
+      properties:
+        configured:
+          type: boolean
+        skipped:
+          type: boolean
+        skipReason:
+          type: string
+          description: Explains why bootstrap was skipped (e.g., skip marker path).
+        logFile:
+          type: string
+          description: Relative path to the JSON log file written under `.tdd/logs/bootstrap-*.json`.
+        stateFile:
+          type: string
+          description: Path to `.tdd/state/bootstrap.json`, useful for doctor/status commands.
+      required: [configured, skipped]
     RoleConfig:
       type: object
       properties:

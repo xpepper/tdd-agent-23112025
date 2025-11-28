@@ -5,6 +5,12 @@ workspace:
   log_dir: ".tdd/logs"
   max_steps: 10
   max_attempts_per_agent: 2
+  # Optional provisioning hook (uncomment to run a bootstrap script before the first tester step)
+  # bootstrap:
+  #   command: ["/bin/sh", "./scripts/bootstrap.sh"]
+  #   working_dir: "."
+  #   skip_files:
+  #     - ".tdd/state/bootstrap.skip"
 roles:
   tester:
     model: "gpt-4o-mini"

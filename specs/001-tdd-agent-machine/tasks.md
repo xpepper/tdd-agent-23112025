@@ -41,19 +41,19 @@
 
 ### Tests for User Story 2
 
-- [ ] T011 [P] [US2] Expand `crates/tdd-cli/tests/init_tests.rs` for empty-dir initialization, idempotent reruns, and provisioning-script success/failure cases.
-- [ ] T012 [P] [US2] Update `/init` contract examples in `specs/001-tdd-agent-machine/contracts/openapi.yaml` to cover bootstrap metadata (skip markers, state file paths).
+- [X] T011 [P] [US2] Expand `crates/tdd-cli/tests/init_tests.rs` for empty-dir initialization, idempotent reruns, and provisioning-script success/failure cases.
+- [X] T012 [P] [US2] Update `/init` contract examples in `specs/001-tdd-agent-machine/contracts/openapi.yaml` to cover bootstrap metadata (skip markers, state file paths).
 
 ### Implementation for User Story 2
 
-- [ ] T013 [P] [US2] Wire `clap` subcommands (init, run, step, status, provision) in `crates/tdd-cli/src/main.rs` with shared argument parsing.
+- [X] T013 [P] [US2] Wire `clap` subcommands (init, run, step, status, provision) in `crates/tdd-cli/src/main.rs` with shared argument parsing.
 - [X] T014 [US2] Implement workspace detection + git initialization logic in `crates/tdd-cli/src/init.rs`, reusing `GitVcs` for existing repos.
-- [ ] T015 [US2] Create `.tdd/plan`, `.tdd/logs`, `.tdd/state`, default `kata.md`, and `tdd.yaml` scaffolds inside `crates/tdd-cli/src/init.rs` with safe overwrites.
-- [ ] T016 [US2] Extend `workspace` config with a `bootstrap` block (command, working_dir, skip markers) in `crates/tdd-core/src/config.rs` plus serde validation tests.
-- [ ] T017 [P] [US2] Implement `BootstrapRunner` in `crates/tdd-exec/src/bootstrap.rs` to resolve paths, honor skip files, stream output, and persist logs.
-- [ ] T018 [US2] Integrate bootstrap execution into `tdd-cli init` and add `tdd-cli provision --force` handling in `crates/tdd-cli/src/commands`.
-- [ ] T019 [US2] Persist bootstrap telemetry to `.tdd/logs/bootstrap-*.json` and `.tdd/state/bootstrap.json` via helpers in `crates/tdd-core/src/logging.rs`.
-- [ ] T020 [US2] Update `specs/001-tdd-agent-machine/quickstart.md`, README, and `tdd.yaml` template to explain provisioning scripts, env vars, and doctor guidance.
+- [X] T015 [US2] Create `.tdd/plan`, `.tdd/logs`, `.tdd/state`, default `kata.md`, and `tdd.yaml` scaffolds inside `crates/tdd-cli/src/init.rs` with safe overwrites.
+- [X] T016 [US2] Extend `workspace` config with a `bootstrap` block (command, working_dir, skip markers) in `crates/tdd-core/src/config.rs` plus serde validation tests.
+- [X] T017 [P] [US2] Implement `BootstrapRunner` in `crates/tdd-exec/src/bootstrap.rs` to resolve paths, honor skip files, stream output, and persist logs.
+- [X] T018 [US2] Integrate bootstrap execution into `tdd-cli init` and add `tdd-cli provision --force` handling in `crates/tdd-cli/src/commands`.
+- [X] T019 [US2] Persist bootstrap telemetry to `.tdd/logs/bootstrap-*.json` and `.tdd/state/bootstrap.json` via helpers in `crates/tdd-core/src/logging.rs`.
+- [X] T020 [US2] Update `specs/001-tdd-agent-machine/quickstart.md`, README, and `tdd.yaml` template to explain provisioning scripts, env vars, and doctor guidance.
 
 **Checkpoint**: CLI initialization + provisioning script automation works and is documented.
 
@@ -145,7 +145,7 @@
 - [ ] T045 [US5] Enhance `crates/tdd-cli/src/init.rs` to detect existing `Cargo.toml`/`src` trees, skip destructive writes, and respect bootstrap skip files.
 - [X] T046 [US5] Implement baseline test guard in `crates/tdd-cli/src/executor.rs` to run configured commands before orchestrating agents.
 - [ ] T047 [US5] Ensure `crates/tdd-exec/src/vcs.rs` stages only new artifacts (plans/logs/bootstrap state) and preserves existing history.
-- [ ] T048 [US5] Document existing-repo + provisioning guidance in `specs/001-tdd-agent-machine/quickstart.md` and README.
+- [X] T048 [US5] Document existing-repo + provisioning guidance in `specs/001-tdd-agent-machine/quickstart.md` and README.
 
 **Checkpoint**: Existing projects can adopt the tool safely with clear failure messaging and bootstrap automation.
 
