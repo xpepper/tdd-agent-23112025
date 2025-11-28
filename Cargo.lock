@@ -1293,6 +1293,7 @@ dependencies = [
  "anyhow",
  "clap",
  "git2",
+ "serde_json",
  "serde_yaml",
  "tdd-agents",
  "tdd-core",
@@ -1300,6 +1301,7 @@ dependencies = [
  "tdd-llm",
  "tempfile",
  "tokio",
+ "url",
 ]
 
 [[package]]
